@@ -52,70 +52,89 @@ const AdminDashboard: React.FC = () => {
   const [editingMeet, setEditingMeet] = useState<MeetSession | null>(null);
 
   useEffect(() => {
-    // Mock data
-    const mockCourses: Course[] = [
-      {
-        id: '1',
-        title: 'UPSC Prelims Complete Course 2025',
-        description: 'Comprehensive preparation for UPSC Civil Services Preliminary Examination',
-        instructor: 'Dr. Rajesh Kumar',
-        duration: '12 months',
-        price: 15999,
-        category: 'upsc',
-        meetLink: 'https://meet.google.com/abc-defg-hij',
-        meetSchedule: 'Every Sunday 10:00 AM - 12:00 PM',
-        isActive: true,
-        difficulty: 'intermediate',
-        thumbnail: '/api/placeholder/400/300',
-        syllabus: ['Ancient History', 'Medieval History', 'Modern History', 'Geography', 'Polity', 'Economics'],
-        features: ['Live Google Meet Sessions', 'One Year Full Access', 'Mobile & desktop access', 'Weekly Mock Tests'],
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-08-01T00:00:00Z'
-      },
-      {
-        id: '2',
-        title: 'Class 12 Physics Complete Course',
-        description: 'Complete Physics course for Class 12 CBSE and competitive exams',
-        instructor: 'Prof. Anita Sharma',
-        duration: '8 months',
-        price: 8999,
-        category: 'school',
-        meetLink: 'https://meet.google.com/xyz-uvwx-yz',
-        meetSchedule: 'Every Tuesday & Thursday 4:00 PM - 6:00 PM',
-        isActive: true,
-        difficulty: 'intermediate',
-        thumbnail: '/api/placeholder/400/300',
-        syllabus: ['Electrostatics', 'Current Electricity', 'Magnetic Effects', 'Electromagnetic Induction', 'Optics', 'Modern Physics'],
-        features: ['Animation Videos', 'Lab Simulations', 'Practice Problems', 'Board Exam Prep'],
-        createdAt: '2025-02-01T00:00:00Z',
-        updatedAt: '2025-08-01T00:00:00Z'
-      }
-    ];
-
-    const mockMeetSessions: MeetSession[] = [
-      {
-        id: '1',
-        courseId: '1',
-        courseName: 'UPSC Prelims Complete Course 2025',
-        meetLink: 'https://meet.google.com/upsc-live-session',
-        scheduledDate: '2025-08-10',
-        scheduledTime: '10:00',
-        status: 'scheduled'
-      },
-      {
-        id: '2',
-        courseId: '2',
-        courseName: 'Class 12 Physics Complete Course',
-        meetLink: 'https://meet.google.com/physics-class',
-        scheduledDate: '2025-08-08',
-        scheduledTime: '16:00',
-        status: 'live'
-      }
-    ];
-
-    setCourses(mockCourses);
-    setMeetSessions(mockMeetSessions);
+    loadCourses();
+    loadMeetSessions();
   }, []);
+
+  const loadCourses = async () => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5000/api/admin/courses', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Transform backend data to frontend format
+          const transformedCourses = data.data.courses.map((course: any) => ({
+            id: course._id,
+            title: course.title,
+            description: course.description,
+            instructor: course.instructor?.name || 'Expert Instructor',
+            duration: course.duration || 'N/A',
+            price: course.price,
+            category: course.category,
+            meetLink: course.meetLink || '',
+            meetSchedule: course.meetSchedule?.dailyTime ? 
+              `Daily at ${course.meetSchedule.dailyTime} (${course.meetSchedule.timezone})` : 
+              'No schedule set',
+            isActive: course.isActive,
+            difficulty: course.level?.toLowerCase() || 'beginner',
+            thumbnail: course.imageURL || '/api/placeholder/400/300',
+            syllabus: course.curriculum?.map((item: any) => item.title) || [],
+            features: course.features || [],
+            createdAt: course.createdAt,
+            updatedAt: course.updatedAt
+          }));
+          setCourses(transformedCourses);
+        }
+      } else {
+        toast.error('Failed to load courses');
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      toast.error('Error loading courses');
+    }
+  };
+
+  const loadMeetSessions = async () => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5000/api/admin/meeting-links', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Transform backend data to frontend format
+          const allMeetSessions: MeetSession[] = data.data.liveSessions.map((session: any) => ({
+            id: session.sessionId || `${session.courseId}-${session.scheduledDate}`,
+            courseId: session.courseId,
+            courseName: session.courseTitle,
+            meetLink: session.meetLink,
+            scheduledDate: new Date(session.scheduledDate).toISOString().split('T')[0],
+            scheduledTime: session.scheduledTime,
+            status: new Date(session.scheduledDate) < new Date() ? 'completed' : 'scheduled'
+          }));
+          
+          setMeetSessions(allMeetSessions);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading meet sessions:', error);
+      toast.error('Error loading meet sessions');
+    }
+  };
 
   // Check if user is admin
   if (!isAuthenticated || !user?.isAdmin) {
@@ -132,46 +151,102 @@ const AdminDashboard: React.FC = () => {
     setShowCourseModal(true);
   };
 
-  const handleDeleteCourse = (courseId: string) => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
-      setCourses(courses.filter(c => c.id !== courseId));
-      toast.success('Course deleted successfully');
+      try {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:5000/api/admin/courses/${courseId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            toast.success('Course deleted successfully');
+            loadCourses(); // Reload courses from backend
+          } else {
+            toast.error(data.message || 'Failed to delete course');
+          }
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.message || 'Failed to delete course');
+        }
+      } catch (error) {
+        console.error('Error deleting course:', error);
+        toast.error('Error deleting course');
+      }
     }
   };
 
-  const handleSaveCourse = (courseData: Partial<Course>) => {
-    if (editingCourse) {
-      // Update existing course
-      setCourses(courses.map(c => 
-        c.id === editingCourse.id 
-          ? { ...c, ...courseData }
-          : c
-      ));
-      toast.success('Course updated successfully');
-    } else {
-      // Create new course
-      const newCourse: Course = {
-        id: Date.now().toString(),
-        title: courseData.title || '',
-        description: courseData.description || '',
-        instructor: courseData.instructor || '',
-        duration: courseData.duration || '',
-        price: courseData.price || 0,
-        category: courseData.category || '',
-        meetLink: courseData.meetLink || '',
-        meetSchedule: courseData.meetSchedule || '',
-        difficulty: courseData.difficulty || 'beginner',
-        thumbnail: courseData.thumbnail || '/api/placeholder/400/300',
-        syllabus: courseData.syllabus || [],
-        features: courseData.features || [],
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+  const handleSaveCourse = async (courseData: Partial<Course>) => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const url = editingCourse 
+        ? `http://localhost:5000/api/admin/courses/${editingCourse.id}`
+        : 'http://localhost:5000/api/admin/courses';
+      
+      const method = editingCourse ? 'PUT' : 'POST';
+      
+      // Transform frontend data to backend format
+      const backendData = {
+        title: courseData.title,
+        description: courseData.description,
+        imageURL: courseData.thumbnail || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=250&fit=crop&crop=entropy&auto=format&q=80',
+        price: courseData.price,
+        category: courseData.category,
+        level: courseData.difficulty ? 
+          courseData.difficulty.charAt(0).toUpperCase() + courseData.difficulty.slice(1) : 
+          'Beginner',
+        features: courseData.features,
+        curriculum: courseData.syllabus?.map(item => ({ title: item, topics: [] })),
+        instructor: {
+          name: courseData.instructor,
+          bio: '',
+          image: ''
+        },
+        duration: courseData.duration,
+        ...(courseData.meetLink && { meetLink: courseData.meetLink }),
+        ...(courseData.meetSchedule && {
+          meetSchedule: {
+            dailyTime: courseData.meetSchedule,
+            timezone: 'Asia/Kolkata',
+            isActive: true
+          }
+        })
       };
-      setCourses([...courses, newCourse]);
-      toast.success('Course created successfully');
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(backendData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success(editingCourse ? 'Course updated successfully' : 'Course created successfully');
+          loadCourses(); // Reload courses from backend
+          setShowCourseModal(false);
+        } else {
+          toast.error(data.message || 'Failed to save course');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to save course');
+      }
+    } catch (error) {
+      console.error('Error saving course:', error);
+      toast.error('Error saving course');
     }
-    setShowCourseModal(false);
   };
 
   const handleCreateMeetSession = () => {
@@ -184,37 +259,68 @@ const AdminDashboard: React.FC = () => {
     setShowMeetModal(true);
   };
 
-  const handleDeleteMeetSession = (sessionId: string) => {
+  const handleDeleteMeetSession = async (sessionId: string) => {
     if (window.confirm('Are you sure you want to delete this meet session?')) {
-      setMeetSessions(meetSessions.filter(s => s.id !== sessionId));
-      toast.success('Meet session deleted successfully');
+      try {
+        // For now, show a message as deleting individual live sessions requires backend implementation
+        toast('Individual session deletion not yet implemented. Please edit the course to manage sessions.');
+        // Remove from frontend state temporarily
+        setMeetSessions(meetSessions.filter(s => s.id !== sessionId));
+      } catch (error) {
+        console.error('Error deleting meet session:', error);
+        toast.error('Error deleting meet session');
+      }
     }
   };
 
-  const handleSaveMeetSession = (sessionData: Partial<MeetSession>) => {
-    if (editingMeet) {
-      // Update existing session
-      setMeetSessions(meetSessions.map(s => 
-        s.id === editingMeet.id 
-          ? { ...s, ...sessionData }
-          : s
-      ));
-      toast.success('Meet session updated successfully');
-    } else {
-      // Create new session
-      const newSession: MeetSession = {
-        id: Date.now().toString(),
-        courseId: sessionData.courseId || '',
-        courseName: courses.find(c => c.id === sessionData.courseId)?.title || '',
-        meetLink: sessionData.meetLink || '',
-        scheduledDate: sessionData.scheduledDate || '',
-        scheduledTime: sessionData.scheduledTime || '',
-        status: 'scheduled'
-      };
-      setMeetSessions([...meetSessions, newSession]);
-      toast.success('Meet session created successfully');
+  const handleSaveMeetSession = async (sessionData: Partial<MeetSession>) => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      
+      if (editingMeet) {
+        // For editing, we need to update the course's liveSessions array
+        toast('Editing existing sessions not yet implemented. Please delete and create new.');
+        setShowMeetModal(false);
+        return;
+      } else {
+        // Create new live session
+        const url = `http://localhost:5000/api/admin/courses/${sessionData.courseId}/live-session`;
+        
+        const backendData = {
+          date: sessionData.scheduledDate,
+          time: sessionData.scheduledTime,
+          meetLink: sessionData.meetLink,
+          title: `Live Session - ${new Date(sessionData.scheduledDate || '').toLocaleDateString()}`
+        };
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(backendData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            toast.success('Live session scheduled successfully');
+            loadMeetSessions(); // Reload meet sessions
+            setShowMeetModal(false);
+          } else {
+            toast.error(data.message || 'Failed to schedule session');
+          }
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.message || 'Failed to schedule session');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving meet session:', error);
+      toast.error('Error saving meet session');
     }
-    setShowMeetModal(false);
   };
 
   const startMeetSession = (sessionId: string) => {
@@ -271,6 +377,16 @@ const AdminDashboard: React.FC = () => {
               }`}
             >
               Google Meet Sessions
+            </button>
+            <button
+              onClick={() => setActiveTab('meeting-links')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'meeting-links'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All Meeting Links
             </button>
           </nav>
         </div>
@@ -487,6 +603,147 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* All Meeting Links Tab */}
+      {activeTab === 'meeting-links' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">All Meeting Links</h2>
+              <p className="text-gray-600">Overview of all Google Meet links you've provided</p>
+            </div>
+          </div>
+
+          {/* Course Meeting Links */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Regular Meeting Links</h3>
+              <div className="grid gap-4">
+                {courses.filter(course => course.meetLink).map((course) => (
+                  <div key={course.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{course.meetSchedule}</p>
+                        <div className="flex items-center space-x-4">
+                          <a
+                            href={course.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                          >
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                            {course.meetLink}
+                          </a>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(course.meetLink || '');
+                              toast.success('Link copied to clipboard!');
+                            }}
+                            className="text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Copy Link
+                          </button>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        course.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {course.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {courses.filter(course => course.meetLink).length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Video className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <p>No regular meeting links set up for courses yet.</p>
+                    <p className="text-sm">Edit a course to add a regular Google Meet link.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Live Session Meeting Links */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Session Meeting Links</h3>
+              <div className="grid gap-4">
+                {meetSessions.map((session) => (
+                  <div key={session.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{session.courseName}</h4>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {new Date(session.scheduledDate).toLocaleDateString()} at {session.scheduledTime}
+                        </p>
+                        <div className="flex items-center space-x-4">
+                          <a
+                            href={session.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                          >
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                            {session.meetLink}
+                          </a>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(session.meetLink);
+                              toast.success('Link copied to clipboard!');
+                            }}
+                            className="text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Copy Link
+                          </button>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        session.status === 'live' 
+                          ? 'bg-green-100 text-green-800' 
+                          : session.status === 'scheduled'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {meetSessions.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Video className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <p>No live session meeting links scheduled yet.</p>
+                    <p className="text-sm">Go to "Google Meet Sessions" tab to schedule sessions.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">Meeting Links Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{courses.filter(c => c.meetLink).length}</div>
+                  <div className="text-sm text-gray-600">Regular Course Links</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{meetSessions.length}</div>
+                  <div className="text-sm text-gray-600">Live Session Links</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {courses.filter(c => c.meetLink).length + meetSessions.length}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Meeting Links</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Course Modal */}
       {showCourseModal && (

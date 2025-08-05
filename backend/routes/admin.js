@@ -356,6 +356,26 @@ router.get('/dashboard', simpleAdminAuth, async (req, res) => {
     const totalCurrentAffairs = await CurrentAffair.countDocuments({ isActive: true });
     const totalPayments = await Payment.countDocuments({ status: 'completed' });
 
+    // Get meeting link statistics
+    const coursesWithMeetLinks = await Course.countDocuments({ 
+      isActive: true, 
+      meetLink: { $exists: true, $ne: '' } 
+    });
+
+    const coursesWithLiveSessions = await Course.countDocuments({ 
+      isActive: true, 
+      'liveSessions.0': { $exists: true } 
+    });
+
+    // Get total live sessions count
+    const liveSessions = await Course.aggregate([
+      { $match: { isActive: true, 'liveSessions.0': { $exists: true } } },
+      { $unwind: '$liveSessions' },
+      { $match: { 'liveSessions.isActive': true } },
+      { $count: 'totalLiveSessions' }
+    ]);
+    const totalLiveSessions = liveSessions.length > 0 ? liveSessions[0].totalLiveSessions : 0;
+
     // Get revenue
     const revenueResult = await Payment.aggregate([
       { $match: { status: 'completed' } },
@@ -379,6 +399,17 @@ router.get('/dashboard', simpleAdminAuth, async (req, res) => {
       { $project: { title: 1, enrollmentCount: 1 } }
     ]);
 
+    // Get courses with meeting links for admin overview
+    const coursesWithMeeting = await Course.find({ 
+      isActive: true, 
+      $or: [
+        { meetLink: { $exists: true, $ne: '' } },
+        { 'liveSessions.0': { $exists: true } }
+      ]
+    })
+    .select('title meetLink meetSchedule liveSessions')
+    .limit(10);
+
     res.json({
       success: true,
       data: {
@@ -387,10 +418,18 @@ router.get('/dashboard', simpleAdminAuth, async (req, res) => {
           totalCourses,
           totalCurrentAffairs,
           totalPayments,
-          totalRevenue
+          totalRevenue,
+          coursesWithMeetLinks,
+          coursesWithLiveSessions,
+          totalLiveSessions
         },
         recentEnrollments,
-        topCourses: courseStats
+        topCourses: courseStats,
+        meetingOverview: {
+          regularMeetingLinks: coursesWithMeetLinks,
+          liveSessions: totalLiveSessions,
+          recentCourses: coursesWithMeeting
+        }
       }
     });
   } catch (error) {
@@ -756,6 +795,83 @@ router.post('/courses/:id/live-session', simpleAdminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Add live session error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// @route   GET /api/admin/meeting-links
+// @desc    Get all meeting links for admin overview
+// @access  Private (Admin)
+router.get('/meeting-links', simpleAdminAuth, async (req, res) => {
+  try {
+    // Get all courses with meeting links or live sessions
+    const courses = await Course.find({ 
+      isActive: true,
+      $or: [
+        { meetLink: { $exists: true, $ne: '' } },
+        { 'liveSessions.0': { $exists: true } }
+      ]
+    })
+    .select('title meetLink meetSchedule liveSessions category instructor createdAt')
+    .populate('createdBy', 'name mobile')
+    .sort({ createdAt: -1 });
+
+    // Transform data for frontend
+    const meetingData = {
+      regularMeetings: [],
+      liveSessions: [],
+      summary: {
+        totalCourses: courses.length,
+        coursesWithRegularMeeting: 0,
+        totalLiveSessions: 0
+      }
+    };
+
+    courses.forEach(course => {
+      // Regular meeting links
+      if (course.meetLink) {
+        meetingData.regularMeetings.push({
+          courseId: course._id,
+          courseTitle: course.title,
+          meetLink: course.meetLink,
+          schedule: course.meetSchedule?.dailyTime || 'No schedule set',
+          category: course.category,
+          instructor: course.instructor?.name || 'No instructor',
+          createdAt: course.createdAt
+        });
+        meetingData.summary.coursesWithRegularMeeting++;
+      }
+
+      // Live sessions
+      if (course.liveSessions && course.liveSessions.length > 0) {
+        course.liveSessions.forEach(session => {
+          if (session.isActive) {
+            meetingData.liveSessions.push({
+              sessionId: session._id,
+              courseId: course._id,
+              courseTitle: course.title,
+              sessionTitle: session.title,
+              meetLink: session.meetLink,
+              scheduledDate: session.date,
+              scheduledTime: session.time,
+              category: course.category,
+              isActive: session.isActive
+            });
+            meetingData.summary.totalLiveSessions++;
+          }
+        });
+      }
+    });
+
+    res.json({
+      success: true,
+      data: meetingData
+    });
+  } catch (error) {
+    console.error('Get meeting links error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.'
