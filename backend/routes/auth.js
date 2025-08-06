@@ -729,4 +729,60 @@ router.post('/verify-teacher', async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/verify-token
+// @desc    Verify JWT token and return current user data
+// @access  Private
+router.post('/verify-token', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. No token provided.'
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId)
+        .select('-password -__v')
+        .populate('enrolledCourses.courseId', 'title price imageURL instructor category level features curriculum meetLink meetSchedule liveSessions rating isActive');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token. User not found.'
+        });
+      }
+
+      // Check if user is still active
+      if (!user.isVerified) {
+        return res.status(401).json({
+          success: false,
+          message: 'Account not verified.'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          user: user
+        }
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token.'
+      });
+    }
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during token verification'
+    });
+  }
+});
+
 module.exports = router;

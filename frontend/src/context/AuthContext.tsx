@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { User, AuthState } from '../types';
 import { authAPI } from '../services/api';
 import { tokenUtils } from '../utils/token';
+import { sessionUtils } from '../utils/session';
 import toast from 'react-hot-toast';
 
 interface AuthContextType extends AuthState {
@@ -86,18 +87,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (token && userStr) {
         try {
-          // Simply restore the authentication state from localStorage
-          // The JWT tokens are verified on each API request by the backend
+          // Verify token with backend before restoring session
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data?.user) {
+              // Use fresh user data from backend
+              dispatch({
+                type: 'AUTH_SUCCESS',
+                payload: { user: data.data.user, token },
+              });
+            } else {
+              // Invalid token, clear stored data
+              tokenUtils.clearTokens();
+              dispatch({ type: 'AUTH_FAILURE' });
+            }
+          } else {
+            // Token verification failed, clear stored data
+            tokenUtils.clearTokens();
+            dispatch({ type: 'AUTH_FAILURE' });
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          // On error, try to restore from localStorage but mark for re-verification
           dispatch({
             type: 'AUTH_SUCCESS',
             payload: { user: userStr, token },
           });
-          
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          // Clear invalid stored data
-          tokenUtils.clearTokens();
-          dispatch({ type: 'AUTH_FAILURE' });
         }
       } else {
         dispatch({ type: 'AUTH_FAILURE' });
@@ -138,6 +161,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (response.data.success && response.data.data) {
         const { user, token } = response.data.data;
+        
+        // Handle session conflict
+        sessionUtils.handleSessionConflict(user.id);
+        sessionUtils.setActiveSession(user.id);
         
         // Store in localStorage
         tokenUtils.setToken(token);
@@ -186,6 +213,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data.success && response.data.data) {
         const { user, token } = response.data.data;
         
+        // Handle session conflict
+        sessionUtils.handleSessionConflict(user.id);
+        sessionUtils.setActiveSession(user.id);
+        
         // Store tokens using tokenUtils
         tokenUtils.setToken(token);
         tokenUtils.setStoredUser(user);
@@ -215,7 +246,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch({ type: 'AUTH_START' });
 
       // Make API call to backend for admin authentication
-      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/admin/login', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -230,6 +261,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (data.success && data.data) {
         const { user, token } = data.data;
+
+        // Handle session conflict for admin
+        sessionUtils.handleSessionConflict(user.id);
+        sessionUtils.setActiveSession(user.id);
 
         // Store admin session in localStorage (for compatibility with existing code)
         tokenUtils.setAdminToken(token);
@@ -257,6 +292,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     tokenUtils.clearTokens();
+    sessionUtils.clearSession();
     dispatch({ type: 'LOGOUT' });
     toast.success('Logged out successfully');
   };
