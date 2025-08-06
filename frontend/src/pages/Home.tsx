@@ -373,6 +373,13 @@ const Home: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching courses by category:', error);
+        
+        // More detailed error logging
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          console.error('Network error - API might be down or CORS issue');
+          console.error('Trying to reach:', 'https://iasdesk-educational-platform-2.onrender.com/api/courses');
+        }
+        
         // Set fallback realistic data
         setExamCategories(prev => prev.map(cat => ({
           ...cat,

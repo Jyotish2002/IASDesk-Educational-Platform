@@ -21,7 +21,15 @@ app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    'https://ias-desk.vercel.app',
+    'https://iasdesk-educational-platform-git-main-jyotish2002s-projects.vercel.app',
+    'https://iasdesk-educational-platform-jyotish2002s-projects.vercel.app',
+    /^https:\/\/iasdesk-educational-platform.*\.vercel\.app$/
+  ],
   credentials: true
 }));
 app.use(express.json());
