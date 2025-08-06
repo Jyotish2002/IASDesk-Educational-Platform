@@ -151,7 +151,7 @@ const Home: React.FC = () => {
     const fetchStats = async () => {
       try {
         // First, get the actual course count
-        const coursesResponse = await fetch('http://localhost:5000/api/courses', {
+        const coursesResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/courses', {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -203,7 +203,7 @@ const Home: React.FC = () => {
 
         // Try to get additional stats from admin dashboard
         try {
-          const dashboardResponse = await fetch('http://localhost:5000/api/admin/dashboard', {
+          const dashboardResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/dashboard', {
             headers: {
               'Content-Type': 'application/json'
             }
@@ -267,7 +267,7 @@ const Home: React.FC = () => {
 
     const fetchCoursesByCategory = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/courses', {
+        const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/courses', {
           headers: {
             'Content-Type': 'application/json'
           }

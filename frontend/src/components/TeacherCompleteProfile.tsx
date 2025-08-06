@@ -95,7 +95,7 @@ const TeacherCompleteProfile: React.FC = () => {
         specialization: formData.specialization.split(',').map(s => s.trim()).filter(s => s)
       };
 
-      const response = await fetch('http://localhost:5000/api/teachers/complete-profile', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/teachers/complete-profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

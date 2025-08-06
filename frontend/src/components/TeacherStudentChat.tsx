@@ -56,7 +56,7 @@ const TeacherStudentChat: React.FC<TeacherStudentChatProps> = ({
   const fetchMessages = useCallback(async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch(`http://localhost:5000/api/chat/messages/${teacherId}`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/chat/messages/${teacherId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ const TeacherStudentChat: React.FC<TeacherStudentChatProps> = ({
       formData.append('image', file);
 
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/chat/upload-image-cloudinary', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/upload-image-cloudinary', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -149,7 +149,7 @@ const TeacherStudentChat: React.FC<TeacherStudentChatProps> = ({
       }
 
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/chat/send-message', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/send-message', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

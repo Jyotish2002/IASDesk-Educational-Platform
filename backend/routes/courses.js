@@ -825,4 +825,64 @@ router.post('/live-classes', async (req, res) => {
   }
 });
 
+// @route   POST /api/courses/:id/test-enroll
+// @desc    Test enrollment (for debugging purposes only)
+// @access  Private
+router.post('/:id/test-enroll', auth, async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const userId = req.user.id;
+
+    // Check if course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if already enrolled
+    const user = await User.findById(userId);
+    const alreadyEnrolled = user.enrolledCourses.some(
+      enrollment => enrollment.courseId.toString() === courseId
+    );
+
+    if (alreadyEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already enrolled in this course'
+      });
+    }
+
+    // Add test enrollment
+    user.enrolledCourses.push({
+      courseId,
+      paymentId: 'test_payment_' + Date.now(), // Test payment ID
+      enrolledAt: new Date()
+    });
+    await user.save();
+
+    // Increment course enrollment count
+    course.enrollmentCount += 1;
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Test enrollment successful',
+      data: {
+        courseId,
+        courseName: course.title
+      }
+    });
+
+  } catch (error) {
+    console.error('Test enrollment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during test enrollment'
+    });
+  }
+});
+
 module.exports = router;

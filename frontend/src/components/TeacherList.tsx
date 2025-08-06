@@ -29,7 +29,7 @@ const TeacherList: React.FC = () => {
   const fetchTeachers = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/teachers/list', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/teachers/list', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -23,7 +23,7 @@ const CourseContent: React.FC = () => {
 
   const fetchCourseContent = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/courses/${id}`);
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/courses/${id}`);
       const data = await response.json();
       
       if (data.success && data.data.course) {
@@ -102,7 +102,7 @@ const CourseContent: React.FC = () => {
         
         // Check backend for user's enrolled courses with payment verification
         const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-        const response = await fetch('http://localhost:5000/api/auth/profile', {
+        const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

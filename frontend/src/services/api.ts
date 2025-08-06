@@ -16,7 +16,7 @@ import {
 } from '../types';
 import { tokenUtils } from '../utils/token';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://iasdesk-educational-platform-2.onrender.com/api';
 
 // Create axios instance
 const api = axios.create({

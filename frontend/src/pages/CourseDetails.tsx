@@ -203,7 +203,7 @@ const CourseDetails: React.FC = () => {
   const checkEnrollmentStatus = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -244,7 +244,7 @@ const CourseDetails: React.FC = () => {
       const token = tokenUtils.getToken();
       
       // Create order
-      const orderResponse = await fetch('http://localhost:5000/api/payment/create-order', {
+      const orderResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/payment/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ const CourseDetails: React.FC = () => {
         handler: async function (response: any) {
           try {
             // Verify payment
-            const verifyResponse = await fetch('http://localhost:5000/api/payment/verify', {
+            const verifyResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/payment/verify', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

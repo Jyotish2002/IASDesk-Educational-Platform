@@ -22,7 +22,7 @@ const TeacherInitialLogin: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/teachers/initial-login', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/teachers/initial-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

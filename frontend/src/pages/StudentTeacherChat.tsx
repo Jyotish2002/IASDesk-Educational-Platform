@@ -73,7 +73,7 @@ const StudentTeacherChat: React.FC = () => {
         }
         
         // First check if student has any enrolled courses
-        const profileResponse = await fetch('http://localhost:5000/api/auth/profile', {
+        const profileResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -144,7 +144,7 @@ const StudentTeacherChat: React.FC = () => {
   const loadTeachers = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/auth/teachers', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/teachers', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -168,7 +168,7 @@ const StudentTeacherChat: React.FC = () => {
   const loadMessages = async (teacherId: string) => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch(`http://localhost:5000/api/chat/messages/${teacherId}`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/chat/messages/${teacherId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -206,7 +206,7 @@ const StudentTeacherChat: React.FC = () => {
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        const uploadResponse = await fetch('http://localhost:5000/api/chat/upload-image-cloudinary', {
+        const uploadResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/upload-image-cloudinary', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -218,7 +218,7 @@ const StudentTeacherChat: React.FC = () => {
           const uploadData = await uploadResponse.json();
           if (uploadData.success) {
             // Now send the Cloudinary image URL as a message
-            const messageResponse = await fetch('http://localhost:5000/api/chat/send-message', {
+            const messageResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/send-message', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -243,7 +243,7 @@ const StudentTeacherChat: React.FC = () => {
         }
       } else {
         // Handle text message
-        const response = await fetch('http://localhost:5000/api/chat/send-message', {
+        const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/send-message', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

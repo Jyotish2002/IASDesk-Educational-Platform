@@ -58,7 +58,7 @@ const TeacherDashboard: React.FC = () => {
   const fetchMeetSessions = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/teachers/meet-sessions', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/teachers/meet-sessions', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ const TeacherDashboard: React.FC = () => {
   const fetchChats = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/teachers/chats', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/teachers/chats', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

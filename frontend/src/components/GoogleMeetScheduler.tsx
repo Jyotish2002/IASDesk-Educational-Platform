@@ -72,7 +72,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/teachers', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/teachers', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -99,7 +99,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/courses', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/courses', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -143,7 +143,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse}/schedule`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/live-session`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse}/live-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse}/schedule`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ const GoogleMeetScheduler: React.FC = () => {
         }
       } else {
         // If DELETE endpoint doesn't exist, try updating with empty values
-        const updateResponse = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
+        const updateResponse = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse}/schedule`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ const GoogleMeetScheduler: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/live-session/${sessionId}`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse}/live-session/${sessionId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

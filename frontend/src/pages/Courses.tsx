@@ -57,7 +57,7 @@ const Courses: React.FC = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        let url = 'http://localhost:5000/api/courses';
+        let url = 'https://iasdesk-educational-platform-2.onrender.com/api/courses';
         if (currentCategory) {
           url += `?category=${encodeURIComponent(currentCategory)}`;
         }
@@ -124,7 +124,7 @@ const Courses: React.FC = () => {
   const loadEnrolledCourses = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -185,7 +185,7 @@ const Courses: React.FC = () => {
       console.log('Using token:', token ? 'Token exists' : 'No token');
       
       // Create order
-      const orderResponse = await fetch('http://localhost:5000/api/payment/create-order', {
+      const orderResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/payment/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +218,7 @@ const Courses: React.FC = () => {
             console.log('Payment completed, verifying...', response);
             
             // Verify payment
-            const verifyResponse = await fetch('http://localhost:5000/api/payment/verify', {
+            const verifyResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/payment/verify', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

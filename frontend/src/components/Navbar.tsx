@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
       if (isAuthenticated) {
         try {
           const token = tokenUtils.getToken();
-          const response = await fetch('http://localhost:5000/api/auth/profile', {
+          const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/auth/profile', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
       if (isAuthenticated && user?.role === 'student') {
         try {
           const token = tokenUtils.getToken();
-          const response = await fetch('http://localhost:5000/api/chat/unread-count', {
+          const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/chat/unread-count', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
