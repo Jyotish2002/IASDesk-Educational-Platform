@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
   Users, 
@@ -41,7 +41,7 @@ interface RecentActivity {
 }
 
 const SimplifiedAdminDashboard: React.FC = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -67,7 +67,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
       }
       
       // Fetch dashboard stats from admin API
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/dashboard', {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -171,7 +171,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
         return;
       }
 
-      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/teachers?limit=20', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/teachers?limit=20`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -204,10 +204,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
     }
   }, [currentView]);
 
-  // Check if user is admin
-  if (!isAuthenticated || !user?.isAdmin) {
-    return <Navigate to="/admin-login" replace />;
-  }
+  // Note: Authentication and admin role verification is now handled by ProtectedRoute component
 
   // Handle view switching
   if (currentView === 'overview') {
@@ -341,7 +338,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
                   try {
                     const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
                     
-                    const response = await fetch('${process.env.REACT_APP_API_URL}/admin/create-teacher', {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/create-teacher`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

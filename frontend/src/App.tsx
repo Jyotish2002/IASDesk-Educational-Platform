@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -34,19 +35,51 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/course-details/:id" element={<CourseDetails />} />
-              <Route path="/course-content/:id" element={<CourseContent />} />
-              <Route path="/my-courses" element={<MyCourses />} />
-              <Route path="/live-classes" element={<LiveClasses />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/admin" element={<SimplifiedAdminDashboard />} />
+              <Route path="/course-content/:id" element={
+                <ProtectedRoute>
+                  <CourseContent />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-courses" element={
+                <ProtectedRoute>
+                  <MyCourses />
+                </ProtectedRoute>
+              } />
+              <Route path="/live-classes" element={
+                <ProtectedRoute>
+                  <LiveClasses />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <SimplifiedAdminDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/current-affairs" element={<CurrentAffairs />} />
               <Route path="/current-affairs/:id" element={<CurrentAffairDetail />} />
               <Route path="/teacher-login" element={<TeacherLogin />} />
               <Route path="/teacher/initial-login" element={<TeacherInitialLogin />} />
-              <Route path="/teacher/complete-profile" element={<TeacherCompleteProfile />} />
-              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-              <Route path="/chat" element={<StudentTeacherChat />} />
+              <Route path="/teacher/complete-profile" element={
+                <ProtectedRoute requireTeacher={true}>
+                  <TeacherCompleteProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/teacher/dashboard" element={
+                <ProtectedRoute requireTeacher={true}>
+                  <TeacherDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/chat" element={
+                <ProtectedRoute>
+                  <StudentTeacherChat />
+                </ProtectedRoute>
+              } />
               <Route path="/about" element={<div className="p-8 text-center">About page coming soon...</div>} />
               <Route path="/contact" element={<div className="p-8 text-center">Contact page coming soon...</div>} />
               <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />

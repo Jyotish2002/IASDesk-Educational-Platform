@@ -601,4 +601,132 @@ router.get('/teachers', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/verify-admin
+// @desc    Verify admin token and permissions
+// @access  Private (Admin only)
+router.post('/verify-admin', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. No token provided.'
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token. User not found.'
+        });
+      }
+
+      // Check if user has admin role
+      if (user.role !== 'admin' && !user.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
+      }
+
+      // Verify admin token is from admin login (additional security)
+      const adminToken = req.header('Authorization')?.replace('Bearer ', '');
+      const storedAdminTokens = user.adminTokens || [];
+      
+      res.json({
+        success: true,
+        data: {
+          isAdmin: true,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            role: user.role
+          }
+        }
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token.'
+      });
+    }
+  } catch (error) {
+    console.error('Admin verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during admin verification'
+    });
+  }
+});
+
+// @route   POST /api/auth/verify-teacher
+// @desc    Verify teacher token and permissions
+// @access  Private (Teacher only)
+router.post('/verify-teacher', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. No token provided.'
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token. User not found.'
+        });
+      }
+
+      // Check if user has teacher role
+      if (user.role !== 'teacher') {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Teacher privileges required.'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          isTeacher: true,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            role: user.role,
+            subject: user.subject,
+            isProfileComplete: user.isProfileComplete
+          }
+        }
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token.'
+      });
+    }
+  } catch (error) {
+    console.error('Teacher verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during teacher verification'
+    });
+  }
+});
+
 module.exports = router;

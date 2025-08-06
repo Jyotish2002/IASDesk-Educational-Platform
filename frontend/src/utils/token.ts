@@ -58,5 +58,11 @@ export const tokenUtils = {
   // Get admin token specifically
   getAdminToken(): string | null {
     return localStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);
+  },
+
+  // Clear admin token specifically
+  clearAdminToken(): void {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 };
