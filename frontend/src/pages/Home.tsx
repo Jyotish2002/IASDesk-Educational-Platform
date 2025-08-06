@@ -201,24 +201,8 @@ const Home: React.FC = () => {
           totalStudentsFromCategories = 12100;
         }
 
-        // Try to get additional stats from admin dashboard
-        try {
-          const dashboardResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/dashboard', {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (dashboardResponse.ok) {
-            const dashboardData = await dashboardResponse.json();
-            if (dashboardData.success && dashboardData.data?.stats) {
-              // Use real user count if available, otherwise use estimated
-              totalStudentsFromCategories = dashboardData.data.stats.totalUsers || totalStudentsFromCategories;
-            }
-          }
-        } catch (error) {
-          console.log('Dashboard not accessible, using estimated data');
-        }
+        // Use estimated data for marketing display
+        // Real statistics are available in admin dashboard
 
         // Format numbers for display
         const formatNumber = (num: number) => {
@@ -401,6 +385,7 @@ const Home: React.FC = () => {
 
     // Fetch both stats and courses
     Promise.all([fetchStats(), fetchCoursesByCategory()]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
