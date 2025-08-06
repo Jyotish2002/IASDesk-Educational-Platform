@@ -1,16 +1,14 @@
-const twilio = require('twilio');
+const fast2sms = require('fast-two-sms');
 
-let client = null;
-
-// Initialize Twilio client only if credentials are provided
-if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-  try {
-    client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  } catch (error) {
-    console.warn('Twilio initialization failed:', error.message);
-    console.warn('SMS will be logged to console instead');
-  }
-}
+// Fast2SMS configuration
+const fast2smsConfig = {
+  authorization: process.env.FAST2SMS_API_KEY,
+  sender_id: process.env.FAST2SMS_SENDER_ID || 'IASDESK',
+  message: '',
+  language: 'english',
+  route: 'p', // promotional route, use 't' for transactional
+  numbers: ''
+};
 
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -18,30 +16,43 @@ const generateOTP = () => {
 
 const sendOTP = async (mobile, otp) => {
   try {
-    // In development mode or if Twilio is not configured, just log the OTP
-    if (process.env.NODE_ENV === 'development' || !client || !process.env.TWILIO_PHONE_NUMBER) {
+    // In development mode or if Fast2SMS API key is not configured, just log the OTP
+    if (process.env.NODE_ENV === 'development' || !process.env.FAST2SMS_API_KEY) {
       console.log(`📱 OTP for ${mobile}: ${otp}`);
       console.log('🔔 SMS sent successfully (development/fallback mode)');
       return { success: true, message: 'OTP sent successfully (development mode)' };
     }
 
-    // Production mode - send actual SMS via Twilio
-    const message = await client.messages.create({
-      body: `Your IASDesk verification code is: ${otp}. This code will expire in 5 minutes.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: `+91${mobile}`
-    });
-
-    return { 
-      success: true, 
-      message: 'OTP sent successfully',
-      sid: message.sid 
-    };
-  } catch (error) {
-    console.error('SMS sending error:', error);
+    // Production mode - send actual SMS via Fast2SMS
+    const message = `Your IASDesk verification code is: ${otp}. This code will expire in 5 minutes. Do not share this OTP with anyone.`;
     
-    // Fallback to console log if Twilio fails
-    console.log(`📱 OTP for ${mobile}: ${otp} (Twilio failed, showing in console)`);
+    const smsOptions = {
+      authorization: process.env.FAST2SMS_API_KEY,
+      sender_id: process.env.FAST2SMS_SENDER_ID || 'IASDESK',
+      message: message,
+      language: 'english',
+      route: 't', // transactional route for OTP (more reliable)
+      numbers: mobile // Fast2SMS expects mobile number without +91
+    };
+
+    const response = await fast2sms.sendMessage(smsOptions);
+
+    if (response.return === true) {
+      console.log('✅ Fast2SMS response:', response);
+      return { 
+        success: true, 
+        message: 'OTP sent successfully',
+        messageId: response.request_id 
+      };
+    } else {
+      throw new Error(`Fast2SMS API error: ${response.message || 'Unknown error'}`);
+    }
+
+  } catch (error) {
+    console.error('Fast2SMS sending error:', error);
+    
+    // Fallback to console log if Fast2SMS fails
+    console.log(`📱 OTP for ${mobile}: ${otp} (Fast2SMS failed, showing in console)`);
     
     return { 
       success: true, 
