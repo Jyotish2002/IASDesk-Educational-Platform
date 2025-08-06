@@ -54,7 +54,7 @@ const WorkingAdminDashboard: React.FC = () => {
       }
       
       // Try to load courses from admin API
-      const response = await fetch('http://localhost:5000/api/admin/courses', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/courses', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

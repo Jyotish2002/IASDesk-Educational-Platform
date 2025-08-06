@@ -51,7 +51,7 @@ const TeacherChangePassword: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:5000/api/auth/teacher-change-password', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/auth/teacher-change-password', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -16,7 +16,7 @@ const createTeacher = async () => {
       specialization: ['Constitutional Law', 'Indian Government', 'Public Administration']
     };
 
-    const response = await fetch('http://localhost:5000/api/admin/create-teacher', {
+    const response = await fetch('${process.env.REACT_APP_API_URL}/admin/create-teacher', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

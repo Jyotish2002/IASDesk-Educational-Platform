@@ -112,7 +112,7 @@ const WebsiteSettings: React.FC = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/settings', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/settings', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -146,7 +146,7 @@ const WebsiteSettings: React.FC = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/settings', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

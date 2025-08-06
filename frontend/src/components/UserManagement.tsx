@@ -58,7 +58,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
         return;
       }
       
-      const response = await fetch(`http://localhost:5000/api/admin/users?page=${page}&limit=10&search=${search}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/users?page=${page}&limit=10&search=${search}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -159,7 +159,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/cleanup-enrollments', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/cleanup-enrollments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

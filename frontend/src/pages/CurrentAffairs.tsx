@@ -37,8 +37,8 @@ const CurrentAffairs: React.FC = () => {
     try {
       setLoading(true);
       const url = selectedCategory === 'all' 
-        ? 'http://localhost:5000/api/current-affairs'
-        : `http://localhost:5000/api/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
+        ? '${process.env.REACT_APP_API_URL}/current-affairs'
+        : `${process.env.REACT_APP_API_URL}/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
       
       const response = await fetch(url);
       const data = await response.json();

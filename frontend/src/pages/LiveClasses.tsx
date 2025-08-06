@@ -42,7 +42,7 @@ const LiveClasses: React.FC = () => {
       
       // Get user's enrolled courses from backend with payment verification
       const token = tokenUtils.getToken();
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

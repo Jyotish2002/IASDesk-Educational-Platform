@@ -171,7 +171,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/teachers?limit=20', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/admin/teachers?limit=20', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -341,7 +341,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
                   try {
                     const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
                     
-                    const response = await fetch('http://localhost:5000/api/admin/create-teacher', {
+                    const response = await fetch('${process.env.REACT_APP_API_URL}/admin/create-teacher', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -483,7 +483,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
                               const resetPassword = async () => {
                                 try {
                                   const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-                                  const response = await fetch(`http://localhost:5000/api/admin/reset-teacher-password/${teacher._id}`, {
+                                  const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/reset-teacher-password/${teacher._id}`, {
                                     method: 'POST',
                                     headers: {
                                       'Authorization': `Bearer ${token}`,
@@ -514,7 +514,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
                               const deleteTeacher = async () => {
                                 try {
                                   const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
-                                  const response = await fetch(`http://localhost:5000/api/admin/teacher/${teacher._id}`, {
+                                  const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/teacher/${teacher._id}`, {
                                     method: 'DELETE',
                                     headers: {
                                       'Authorization': `Bearer ${token}`,

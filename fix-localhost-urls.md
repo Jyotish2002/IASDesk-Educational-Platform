@@ -4,7 +4,7 @@
 Your codebase has many hardcoded `localhost:5000` URLs that need to be replaced with environment variables for production deployment.
 
 ## Solution
-Replace all instances of `http://localhost:5000/api` with `${process.env.REACT_APP_API_URL}` 
+Replace all instances of `${process.env.REACT_APP_API_URL}` with `${process.env.REACT_APP_API_URL}` 
 
 ## Files that need to be updated:
 
@@ -37,7 +37,7 @@ Replace all instances of `http://localhost:5000/api` with `${process.env.REACT_A
 
 ### WRONG ❌:
 ```typescript
-const response = await fetch('http://localhost:5000/api/admin/dashboard', {
+const response = await fetch('${process.env.REACT_APP_API_URL}/admin/dashboard', {
 ```
 
 ### CORRECT ✅:
@@ -48,7 +48,7 @@ const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`,
 ## Quick Fix Command:
 You can use find-and-replace in VS Code:
 1. Press Ctrl+Shift+H
-2. Find: `http://localhost:5000/api`
+2. Find: `${process.env.REACT_APP_API_URL}`
 3. Replace: `${process.env.REACT_APP_API_URL}`
 4. Replace All
 

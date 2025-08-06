@@ -126,7 +126,7 @@ const CourseOverview: React.FC = () => {
       }
       
       for (const courseData of sampleCourses) {
-        const response = await fetch('http://localhost:5000/api/admin/courses', {
+        const response = await fetch('${process.env.REACT_APP_API_URL}/admin/courses', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ const CourseOverview: React.FC = () => {
       }
       
       // Fetch courses first with larger limit to get all courses
-      const coursesResponse = await fetch('http://localhost:5000/api/admin/courses?limit=1000', {
+      const coursesResponse = await fetch('${process.env.REACT_APP_API_URL}/admin/courses?limit=1000', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

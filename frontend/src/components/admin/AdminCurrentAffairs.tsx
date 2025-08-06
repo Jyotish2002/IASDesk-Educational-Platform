@@ -84,8 +84,8 @@ const CreateCurrentAffairModal: React.FC<CreateCurrentAffairModalProps> = ({
       console.log('Request body:', requestBody);
 
       const url = editingArticle
-        ? `http://localhost:5000/api/admin/current-affairs/${editingArticle._id}`
-        : 'http://localhost:5000/api/admin/current-affairs';
+        ? `${process.env.REACT_APP_API_URL}/admin/current-affairs/${editingArticle._id}`
+        : '${process.env.REACT_APP_API_URL}/admin/current-affairs';
       
       console.log('Request URL:', url);
       
@@ -262,8 +262,8 @@ const AdminCurrentAffairs: React.FC = () => {
       }
 
       const url = selectedCategory === 'all'
-        ? 'http://localhost:5000/api/admin/current-affairs'
-        : `http://localhost:5000/api/admin/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
+        ? '${process.env.REACT_APP_API_URL}/admin/current-affairs'
+        : `${process.env.REACT_APP_API_URL}/admin/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
 
       const response = await fetch(url, {
         headers: {
@@ -294,7 +294,7 @@ const AdminCurrentAffairs: React.FC = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`http://localhost:5000/api/admin/current-affairs/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/current-affairs/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

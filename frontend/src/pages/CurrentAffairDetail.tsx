@@ -25,7 +25,7 @@ const CurrentAffairDetail: React.FC = () => {
   const fetchRelatedArticles = async (category: string, currentId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/current-affairs?category=${encodeURIComponent(category)}&limit=3`
+        `${process.env.REACT_APP_API_URL}/current-affairs?category=${encodeURIComponent(category)}&limit=3`
       );
       const data = await response.json();
 
@@ -45,7 +45,7 @@ const CurrentAffairDetail: React.FC = () => {
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/current-affairs/${id}`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/${id}`);
       const data = await response.json();
 
       if (data.success && data.data) {

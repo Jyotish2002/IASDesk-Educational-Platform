@@ -135,7 +135,7 @@ npm install
 
 Create `.env` file in frontend directory:
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=${process.env.REACT_APP_API_URL}
 REACT_APP_RAZORPAY_KEY_ID=your_razorpay_key_id
 ```
 
@@ -147,7 +147,7 @@ npm start
 ### 4. Access the Application
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
-- API Health Check: http://localhost:5000/api/health
+- API Health Check: ${process.env.REACT_APP_API_URL}/health
 
 ## 📱 API Endpoints
 

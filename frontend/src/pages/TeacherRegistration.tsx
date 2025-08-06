@@ -91,7 +91,7 @@ const TeacherRegistration: React.FC = () => {
     try {
       const filteredSpecializations = formData.specialization.filter(spec => spec.trim() !== '');
       
-      const response = await fetch('http://localhost:5000/api/auth/register-teacher', {
+      const response = await fetch('${process.env.REACT_APP_API_URL}/auth/register-teacher', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
