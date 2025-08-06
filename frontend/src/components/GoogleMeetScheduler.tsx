@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Video, Clock, Calendar, Users, Plus, X } from 'lucide-react';
+import { Video, Clock, Plus, X, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { tokenUtils } from '../utils/token';
 
 interface Course {
   _id: string;
@@ -14,6 +15,14 @@ interface Course {
   liveSessions?: LiveSession[];
 }
 
+interface Teacher {
+  _id: string;
+  name: string;
+  email: string;
+  subject?: string;
+  mobile: string;
+}
+
 interface LiveSession {
   _id: string;
   date: string;
@@ -21,10 +30,13 @@ interface LiveSession {
   meetLink: string;
   title: string;
   isActive: boolean;
+  assignedTeachers?: string[];
+  teacherNames?: string[];
 }
 
 const GoogleMeetScheduler: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -34,7 +46,8 @@ const GoogleMeetScheduler: React.FC = () => {
   const [scheduleForm, setScheduleForm] = useState({
     dailyTime: '',
     meetLink: '',
-    timezone: 'Asia/Kolkata'
+    timezone: 'Asia/Kolkata',
+    assignedTeachers: [] as string[]
   });
 
   // Live session form data
@@ -42,28 +55,73 @@ const GoogleMeetScheduler: React.FC = () => {
     date: '',
     time: '',
     meetLink: '',
-    title: ''
+    title: '',
+    assignedTeachers: [] as string[]
   });
 
   useEffect(() => {
     fetchCourses();
+    fetchTeachers();
   }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      const token = tokenUtils.getAdminToken();
+      if (!token) {
+        toast.error('Admin authentication required');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/auth/teachers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setTeachers(data.data || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      toast.error('Failed to fetch teachers');
+    }
+  };
 
   const fetchCourses = async () => {
     try {
+      const token = tokenUtils.getAdminToken();
+      if (!token) {
+        toast.error('Admin authentication required');
+        return;
+      }
+
       const response = await fetch('http://localhost:5000/api/admin/courses', {
         headers: {
-          'x-admin-token': 'admin-authenticated'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
       
-      if (data.success && data.data?.courses) {
-        setCourses(data.data.courses);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.courses) {
+          setCourses(data.data.courses);
+          console.log('Courses loaded for Google Meet Scheduler:', data.data.courses.length);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } else {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
-      toast.error('Failed to fetch courses');
+      toast.error('Failed to fetch courses: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setCourses([]);
     } finally {
       setLoading(false);
     }
@@ -78,24 +136,36 @@ const GoogleMeetScheduler: React.FC = () => {
     }
 
     try {
+      const token = tokenUtils.getAdminToken();
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
       const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': 'admin-authenticated'
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(scheduleForm)
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success('Daily schedule updated successfully!');
-        setShowScheduleModal(false);
-        setScheduleForm({ dailyTime: '', meetLink: '', timezone: 'Asia/Kolkata' });
-        fetchCourses();
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Daily schedule updated successfully!');
+          setShowScheduleModal(false);
+          setScheduleForm({ dailyTime: '', meetLink: '', timezone: 'Asia/Kolkata', assignedTeachers: [] });
+          // Refresh courses to show updated schedule
+          await fetchCourses();
+        } else {
+          toast.error(data.message || 'Failed to update schedule');
+        }
       } else {
-        toast.error(data.message || 'Failed to update schedule');
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to update schedule');
       }
     } catch (error) {
       console.error('Error updating schedule:', error);
@@ -112,28 +182,155 @@ const GoogleMeetScheduler: React.FC = () => {
     }
 
     try {
+      const token = tokenUtils.getAdminToken();
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
       const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/live-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': 'admin-authenticated'
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(sessionForm)
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success('Live session added successfully!');
-        setShowSessionModal(false);
-        setSessionForm({ date: '', time: '', meetLink: '', title: '' });
-        fetchCourses();
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Live session added successfully!');
+          setShowSessionModal(false);
+          setSessionForm({ date: '', time: '', meetLink: '', title: '', assignedTeachers: [] });
+          // Refresh courses to show updated sessions
+          await fetchCourses();
+        } else {
+          toast.error(data.message || 'Failed to add live session');
+        }
       } else {
-        toast.error(data.message || 'Failed to add live session');
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to add live session');
       }
     } catch (error) {
       console.error('Error adding live session:', error);
       toast.error('Failed to add live session');
+    }
+  };
+
+  const handleDeleteDailySchedule = async () => {
+    if (!selectedCourse) {
+      toast.error('Please select a course');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete the daily schedule for this course?')) {
+      return;
+    }
+
+    try {
+      const token = tokenUtils.getAdminToken();
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Daily schedule deleted successfully!');
+          // Refresh courses to show updated schedule
+          await fetchCourses();
+        } else {
+          toast.error(data.message || 'Failed to delete schedule');
+        }
+      } else {
+        // If DELETE endpoint doesn't exist, try updating with empty values
+        const updateResponse = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/schedule`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            dailyTime: '',
+            meetLink: '',
+            timezone: 'Asia/Kolkata',
+            isActive: false
+          })
+        });
+
+        if (updateResponse.ok) {
+          const updateData = await updateResponse.json();
+          if (updateData.success) {
+            toast.success('Daily schedule cleared successfully!');
+            await fetchCourses();
+          } else {
+            toast.error(updateData.message || 'Failed to clear schedule');
+          }
+        } else {
+          const errorData = await updateResponse.json();
+          toast.error(errorData.message || 'Failed to delete schedule');
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      toast.error('Failed to delete schedule');
+    }
+  };
+
+  const handleDeleteLiveSession = async (sessionId: string) => {
+    if (!selectedCourse) {
+      toast.error('Please select a course');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this live session?')) {
+      return;
+    }
+
+    try {
+      const token = tokenUtils.getAdminToken();
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse}/live-session/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success('Live session deleted successfully!');
+          // Refresh courses to show updated sessions
+          await fetchCourses();
+        } else {
+          toast.error(data.message || 'Failed to delete live session');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to delete live session');
+      }
+    } catch (error) {
+      console.error('Error deleting live session:', error);
+      toast.error('Failed to delete live session');
     }
   };
 
@@ -179,8 +376,23 @@ const GoogleMeetScheduler: React.FC = () => {
         <div className="space-y-6">
           {/* Current Schedule Display */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Current Schedule</h3>
-            {selectedCourseData.meetSchedule?.isActive ? (
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Current Schedule</h3>
+              {selectedCourseData.meetSchedule?.isActive && 
+               selectedCourseData.meetSchedule?.dailyTime && 
+               selectedCourseData.meetLink && (
+                <button
+                  onClick={handleDeleteDailySchedule}
+                  className="flex items-center px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Delete Schedule
+                </button>
+              )}
+            </div>
+            {selectedCourseData.meetSchedule?.isActive && 
+             selectedCourseData.meetSchedule?.dailyTime && 
+             selectedCourseData.meetLink ? (
               <div className="space-y-2">
                 <div className="flex items-center text-green-600">
                   <Clock className="h-4 w-4 mr-2" />
@@ -192,18 +404,80 @@ const GoogleMeetScheduler: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500">No daily schedule set</p>
+              <div className="space-y-2">
+                <p className="text-gray-500">No daily schedule set</p>
+                <p className="text-sm text-gray-400">
+                  Use "Set Daily Schedule" to configure recurring Google Meet sessions
+                </p>
+              </div>
             )}
           </div>
 
+          {/* Live Sessions Display */}
+          {selectedCourseData.liveSessions && selectedCourseData.liveSessions.length > 0 && (
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Live Sessions</h3>
+              <div className="space-y-3">
+                {selectedCourseData.liveSessions
+                  .filter(session => session.isActive) // Only show active sessions
+                  .map((session) => (
+                    <div key={session._id} className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{session.title}</div>
+                        <div className="text-sm text-gray-600">
+                          {new Date(session.date).toLocaleDateString()} at {session.time}
+                        </div>
+                        {session.teacherNames && session.teacherNames.length > 0 && (
+                          <div className="flex items-center mt-1">
+                            <Users className="h-3 w-3 text-gray-500 mr-1" />
+                            <span className="text-xs text-gray-500">
+                              Teachers: {session.teacherNames.join(', ')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center text-blue-600">
+                          <Video className="h-4 w-4 mr-1" />
+                          <span className="text-sm">Meet Ready</span>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteLiveSession(session._id)}
+                          className="flex items-center px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                {selectedCourseData.liveSessions.filter(session => session.isActive).length === 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    No active live sessions scheduled.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 flex-wrap">
             <button
-              onClick={() => setShowScheduleModal(true)}
+              onClick={() => {
+                // Pre-populate form with existing data if available
+                if (selectedCourseData.meetSchedule?.dailyTime) {
+                  setScheduleForm(prev => ({
+                    ...prev,
+                    dailyTime: selectedCourseData.meetSchedule?.dailyTime || '',
+                    meetLink: selectedCourseData.meetLink || '',
+                    timezone: selectedCourseData.meetSchedule?.timezone || 'Asia/Kolkata'
+                  }));
+                }
+                setShowScheduleModal(true);
+              }}
               className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Clock className="h-4 w-4 mr-2" />
-              Set Daily Schedule
+              {selectedCourseData.meetSchedule?.isActive ? 'Update Daily Schedule' : 'Set Daily Schedule'}
             </button>
             <button
               onClick={() => setShowSessionModal(true)}
@@ -256,6 +530,43 @@ const GoogleMeetScheduler: React.FC = () => {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assign Teachers
+                </label>
+                <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                  {teachers.map((teacher) => (
+                    <label key={teacher._id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 rounded px-2">
+                      <input
+                        type="checkbox"
+                        checked={scheduleForm.assignedTeachers.includes(teacher._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              assignedTeachers: [...prev.assignedTeachers, teacher._id]
+                            }));
+                          } else {
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              assignedTeachers: prev.assignedTeachers.filter(id => id !== teacher._id)
+                            }));
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-900">{teacher.name}</span>
+                      <span className="text-xs text-gray-500">({teacher.subject})</span>
+                    </label>
+                  ))}
+                </div>
+                {scheduleForm.assignedTeachers.length > 0 && (
+                  <p className="text-sm text-blue-600 mt-2">
+                    {scheduleForm.assignedTeachers.length} teacher(s) selected
+                  </p>
+                )}
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -345,6 +656,43 @@ const GoogleMeetScheduler: React.FC = () => {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assign Teachers
+                </label>
+                <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                  {teachers.map((teacher) => (
+                    <label key={teacher._id} className="flex items-center space-x-2 py-1 hover:bg-gray-50 rounded px-2">
+                      <input
+                        type="checkbox"
+                        checked={sessionForm.assignedTeachers.includes(teacher._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSessionForm(prev => ({
+                              ...prev,
+                              assignedTeachers: [...prev.assignedTeachers, teacher._id]
+                            }));
+                          } else {
+                            setSessionForm(prev => ({
+                              ...prev,
+                              assignedTeachers: prev.assignedTeachers.filter(id => id !== teacher._id)
+                            }));
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-900">{teacher.name}</span>
+                      <span className="text-xs text-gray-500">({teacher.subject})</span>
+                    </label>
+                  ))}
+                </div>
+                {sessionForm.assignedTeachers.length > 0 && (
+                  <p className="text-sm text-blue-600 mt-2">
+                    {sessionForm.assignedTeachers.length} teacher(s) selected
+                  </p>
+                )}
               </div>
 
               <div className="flex space-x-3 pt-4">

@@ -8,7 +8,7 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, adminLogin } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
+    mobile: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +45,7 @@ const AdminLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      const success = await adminLogin(formData.username, formData.password);
+      const success = await adminLogin(formData.mobile, formData.password);
       
       if (success) {
         navigate('/admin');
@@ -79,24 +79,26 @@ const AdminLogin: React.FC = () => {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
+            {/* Mobile Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Admin Username
+              <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+                Admin Mobile Number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
+                  id="mobile"
+                  name="mobile"
+                  type="tel"
                   required
-                  value={formData.username}
+                  value={formData.mobile}
                   onChange={handleInputChange}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Enter admin username"
+                  placeholder="Enter 10-digit mobile number"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
                 />
               </div>
             </div>
@@ -153,11 +155,11 @@ const AdminLogin: React.FC = () => {
 
           {/* Demo Credentials */}
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Admin Credentials:</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Demo Admin Credentials:</h3>
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>Username:</span>
-                <span className="font-mono">admin</span>
+                <span>Mobile:</span>
+                <span className="font-mono">9999999999</span>
               </div>
               <div className="flex justify-between">
                 <span>Password:</span>
@@ -165,8 +167,8 @@ const AdminLogin: React.FC = () => {
               </div>
               <hr className="my-2" />
               <div className="flex justify-between">
-                <span>Alt Username:</span>
-                <span className="font-mono">iasdesk</span>
+                <span>Alt Mobile:</span>
+                <span className="font-mono">8888888888</span>
               </div>
               <div className="flex justify-between">
                 <span>Alt Password:</span>

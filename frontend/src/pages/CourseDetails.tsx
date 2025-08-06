@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
+import { tokenUtils } from '../utils/token';
 import toast from 'react-hot-toast';
 
 interface Course {
@@ -201,7 +202,7 @@ const CourseDetails: React.FC = () => {
 
   const checkEnrollmentStatus = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const token = tokenUtils.getToken();
       const response = await fetch('http://localhost:5000/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -240,7 +241,7 @@ const CourseDetails: React.FC = () => {
     if (!course) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const token = tokenUtils.getToken();
       
       // Create order
       const orderResponse = await fetch('http://localhost:5000/api/payment/create-order', {

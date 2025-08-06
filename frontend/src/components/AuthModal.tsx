@@ -20,7 +20,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   title = "Authentication Required",
   subtitle = "Please login or register to continue"
 }) => {
-  const { login, sendOTP, verifyOTP, loading } = useAuth();
+  const { loginWithMobile, sendOTP, verifyOTP, loading } = useAuth();
   const [step, setStep] = useState<AuthStep>('choose');
   const [mobile, setMobile] = useState('');
   const [otp, setOTP] = useState('');
@@ -44,7 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    const success = await login(mobile);
+    const success = await loginWithMobile(mobile);
     if (success) {
       handleClose();
       onSuccess?.();

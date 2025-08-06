@@ -5,9 +5,20 @@ export interface User {
   email?: string;
   isVerified: boolean;
   isAdmin: boolean;
+  role: 'student' | 'teacher' | 'admin';
   enrolledCourses: EnrolledCourse[];
   createdAt: string;
   updatedAt: string;
+  // Teacher specific fields
+  isProfileComplete?: boolean;
+  subject?: string;
+  experience?: number;
+  bio?: string;
+  specialization?: string[];
+  rating?: number;
+  isOnline?: boolean;
+  lastSeen?: string;
+  profileImage?: string;
 }
 
 export interface EnrolledCourse {

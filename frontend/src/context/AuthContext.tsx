@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { User, AuthState } from '../types';
 import { authAPI } from '../services/api';
+import { tokenUtils } from '../utils/token';
 import toast from 'react-hot-toast';
 
 interface AuthContextType extends AuthState {
-  login: (mobile: string) => Promise<boolean>;
+  login: (userData?: User) => void;
+  loginWithMobile: (mobile: string) => Promise<boolean>;
   sendOTP: (mobile: string) => Promise<boolean>;
   verifyOTP: (mobile: string, otp: string) => Promise<boolean>;
   adminLogin: (username: string, password: string) => Promise<boolean>;
@@ -79,39 +81,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check for stored token on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
+      const token = tokenUtils.getToken();
+      const userStr = tokenUtils.getStoredUser();
 
       if (token && userStr) {
         try {
-          // For admin tokens, skip backend verification
-          if (token.startsWith('admin-token-')) {
-            const user = JSON.parse(userStr);
-            dispatch({
-              type: 'AUTH_SUCCESS',
-              payload: { user, token },
-            });
-            return;
-          }
-
-          // Verify regular token with backend
-          const response = await authAPI.getProfile();
-          if (response.data.success) {
-            dispatch({
-              type: 'AUTH_SUCCESS',
-              payload: { user: response.data.data!.user, token },
-            });
-            return;
-          }
+          // Simply restore the authentication state from localStorage
+          // The JWT tokens are verified on each API request by the backend
+          dispatch({
+            type: 'AUTH_SUCCESS',
+            payload: { user: userStr, token },
+          });
+          
         } catch (error) {
-          console.error('Token verification failed:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          console.error('Error parsing stored user data:', error);
+          // Clear invalid stored data
+          tokenUtils.clearTokens();
+          dispatch({ type: 'AUTH_FAILURE' });
         }
+      } else {
+        dispatch({ type: 'AUTH_FAILURE' });
       }
-      
-      dispatch({ type: 'AUTH_FAILURE' });
     };
 
     checkAuth();
@@ -150,8 +140,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { user, token } = response.data.data;
         
         // Store in localStorage
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        tokenUtils.setToken(token);
+        tokenUtils.setStoredUser(user);
         
         dispatch({
           type: 'AUTH_SUCCESS',
@@ -173,7 +163,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (mobile: string): Promise<boolean> => {
+  const login = (userData?: User): void => {
+    if (userData) {
+      // Direct login with user data (for teacher login)
+      const token = tokenUtils.getToken();
+      if (token) {
+        dispatch({
+          type: 'AUTH_SUCCESS',
+          payload: { user: userData, token },
+        });
+      }
+    }
+  };
+
+  // Keep the original mobile-based login for backward compatibility
+  const loginWithMobile = async (mobile: string): Promise<boolean> => {
     try {
       dispatch({ type: 'AUTH_START' });
       
@@ -182,9 +186,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data.success && response.data.data) {
         const { user, token } = response.data.data;
         
-        // Store in localStorage
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        // Store tokens using tokenUtils
+        tokenUtils.setToken(token);
+        tokenUtils.setStoredUser(user);
         
         dispatch({
           type: 'AUTH_SUCCESS',
@@ -210,61 +214,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      // Simple admin credentials
-      const adminCredentials = [
-        { username: 'admin', password: 'admin123', name: 'Admin', id: 'admin1' },
-        { username: 'iasdesk', password: 'iasdesk2025', name: 'IASDesk Admin', id: 'admin2' }
-      ];
+      // Make API call to backend for admin authentication
+      const response = await fetch('http://localhost:5000/api/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mobile: username, // username is actually mobile number
+          password: password
+        }),
+      });
 
-      const admin = adminCredentials.find(
-        cred => cred.username === username && cred.password === password
-      );
+      const data = await response.json();
 
-      if (admin) {
-        // Create admin user object
-        const adminUser: User = {
-          id: admin.id,
-          name: admin.name,
-          mobile: '9999999999',
-          email: `${admin.username}@iasdesk.com`,
-          isVerified: true,
-          isAdmin: true,
-          enrolledCourses: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+      if (data.success && data.data) {
+        const { user, token } = data.data;
 
-        const token = 'admin-token-' + admin.id;
-
-        // Store admin session
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('adminToken', 'admin-authenticated');
-        localStorage.setItem('user', JSON.stringify(adminUser));
+        // Store admin session in localStorage (for compatibility with existing code)
+        tokenUtils.setAdminToken(token);
+        tokenUtils.setStoredUser(user);
 
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user: adminUser, token },
+          payload: { user, token },
         });
 
-        toast.success(`Welcome ${admin.name}! Admin access granted.`);
+        toast.success(`Welcome ${user.name}! Admin access granted.`);
         return true;
       } else {
-        toast.error('Invalid admin credentials');
+        toast.error(data.message || 'Invalid admin credentials');
         dispatch({ type: 'AUTH_FAILURE' });
         return false;
       }
     } catch (error) {
-      toast.error('Admin login failed');
+      console.error('Admin login error:', error);
+      toast.error('Failed to login. Please check your connection and try again.');
       dispatch({ type: 'AUTH_FAILURE' });
       return false;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('token');
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('user');
+    tokenUtils.clearTokens();
     dispatch({ type: 'LOGOUT' });
     toast.success('Logged out successfully');
   };
@@ -277,7 +269,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const updatedUser = response.data.data.user;
         
         // Update localStorage
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        tokenUtils.setStoredUser(updatedUser);
         
         dispatch({
           type: 'UPDATE_USER',
@@ -300,6 +292,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     ...state,
     login,
+    loginWithMobile,
     sendOTP,
     verifyOTP,
     adminLogin,

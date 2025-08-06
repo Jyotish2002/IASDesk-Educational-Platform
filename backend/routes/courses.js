@@ -143,6 +143,14 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Debug logging for meeting links
+    console.log(`Course ${course._id} meeting info:`, {
+      title: course.title,
+      meetLink: course.meetLink,
+      meetSchedule: course.meetSchedule,
+      liveSessions: course.liveSessions?.length || 0
+    });
+
     res.json({
       success: true,
       data: { course }

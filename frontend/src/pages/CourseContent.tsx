@@ -32,19 +32,39 @@ const CourseContent: React.FC = () => {
         const sessions: LiveSession[] = [];
         const today = new Date().toISOString().split('T')[0];
         
-        // Add only today's live sessions scheduled by admin
+        // Add regular course meeting link if available
+        if (data.data.course.meetLink) {
+          sessions.push({
+            id: 'regular-class',
+            title: `${data.data.course.title} - Regular Class`,
+            scheduledDate: today,
+            scheduledTime: data.data.course.meetSchedule?.dailyTime || 'As scheduled',
+            meetLink: data.data.course.meetLink,
+            status: 'live'
+          });
+        }
+        
+        // Add live sessions scheduled by admin - FILTER OUT DEMO DATA
         if (data.data.course.liveSessions) {
           data.data.course.liveSessions.forEach((session: any, index: number) => {
             const sessionDate = new Date(session.date).toISOString().split('T')[0];
             
-            if (sessionDate === today && session.isActive) {
+            // Filter out demo/test sessions
+            const sessionTitle = session.title?.toLowerCase() || '';
+            const isDemoSession = sessionTitle.includes('demo') || 
+                                sessionTitle.includes('test') || 
+                                sessionTitle === 'english' ||
+                                sessionTitle.length < 5;
+            
+            // Show sessions for today and upcoming days, but exclude demo sessions
+            if (session.isActive && new Date(session.date) >= new Date(today) && !isDemoSession) {
               sessions.push({
                 id: `session-${index}`,
                 title: session.title,
                 scheduledDate: sessionDate,
                 scheduledTime: session.time,
                 meetLink: session.meetLink,
-                status: 'live'
+                status: sessionDate === today ? 'live' : 'scheduled'
               });
             }
           });
@@ -184,10 +204,27 @@ const CourseContent: React.FC = () => {
             {liveSessions.length > 0 ? (
               <div className="space-y-6">
                 {liveSessions.map((session) => (
-                  <div key={session.id} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                  <div key={session.id} className={`rounded-lg p-6 border ${
+                    session.id === 'regular-class' 
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                      : session.status === 'live'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+                      : 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200'
+                  }`}>
                     <div className="flex items-center justify-center mb-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
-                        🔴 LIVE CLASS
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        session.id === 'regular-class'
+                          ? 'bg-green-100 text-green-800'
+                          : session.status === 'live'
+                          ? 'bg-red-100 text-red-800 animate-pulse'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {session.id === 'regular-class' 
+                          ? '🎓 REGULAR CLASS'
+                          : session.status === 'live'
+                          ? '🔴 LIVE CLASS'
+                          : '📅 SCHEDULED CLASS'
+                        }
                       </span>
                     </div>
                     
@@ -195,15 +232,33 @@ const CourseContent: React.FC = () => {
                     
                     <div className="flex items-center justify-center text-lg text-gray-700 mb-6">
                       <Clock className="h-5 w-5 mr-2" />
-                      <span className="font-medium">Class Time: {session.scheduledTime}</span>
+                      <span className="font-medium">
+                        {session.id === 'regular-class' 
+                          ? `Schedule: ${session.scheduledTime}`
+                          : session.status === 'scheduled'
+                          ? `Date: ${new Date(session.scheduledDate).toLocaleDateString()} at ${session.scheduledTime}`
+                          : `Class Time: ${session.scheduledTime}`
+                        }
+                      </span>
                     </div>
                     
                     <button
                       onClick={() => joinLiveSession(session)}
-                      className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                      className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg ${
+                        session.id === 'regular-class'
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800'
+                          : session.status === 'live'
+                          ? 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'
+                          : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                      }`}
                     >
                       <ExternalLink className="h-5 w-5 mr-2 inline" />
-                      Join Live Class Now
+                      {session.id === 'regular-class' 
+                        ? 'Join Regular Class'
+                        : session.status === 'live'
+                        ? 'Join Live Class Now'
+                        : 'Join Scheduled Class'
+                      }
                     </button>
                   </div>
                 ))}
@@ -211,8 +266,12 @@ const CourseContent: React.FC = () => {
             ) : (
               <div className="bg-gray-50 rounded-lg p-8">
                 <Video className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Live Class Today</h3>
-                <p className="text-gray-600 text-lg">Live class will appear here when scheduled by your instructor.</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Classes Available</h3>
+                <p className="text-gray-600 text-lg">
+                  Classes will appear here when scheduled by your instructor.
+                  <br />
+                  <span className="text-sm">Check back later or contact support if you think this is an error.</span>
+                </p>
               </div>
             )}
           </div>

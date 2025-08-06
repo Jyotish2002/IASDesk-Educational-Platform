@@ -13,7 +13,7 @@ const Auth: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   
-  const { sendOTP, verifyOTP, login, loading, isAuthenticated } = useAuth();
+  const { sendOTP, verifyOTP, loginWithMobile, loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,7 +44,7 @@ const Auth: React.FC = () => {
     }
 
     // First try to login (for existing users)
-    const loginSuccess = await login(mobile);
+    const loginSuccess = await loginWithMobile(mobile);
     
     if (loginSuccess) {
       // User exists and logged in successfully

@@ -11,11 +11,32 @@ const currentAffairSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  summary: {
+    type: String,
+    trim: true
+  },
   category: {
     type: String,
     required: true,
     trim: true,
-    enum: ['Politics', 'Economy', 'International', 'Science', 'Sports', 'Environment', 'Defence', 'General']
+    enum: [
+      'National', 
+      'International', 
+      'Economics', 
+      'Politics', 
+      'Environment', 
+      'Science & Technology', 
+      'Defense', 
+      'Sports', 
+      'Awards & Honors', 
+      'Government Schemes',
+      // Legacy categories for backward compatibility
+      'Politics', 
+      'Economy', 
+      'Science', 
+      'Defence', 
+      'General'
+    ]
   },
   tags: [String],
   imageURL: {

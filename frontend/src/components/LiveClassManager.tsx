@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Calendar, 
   Video, 
-  Clock, 
   Save, 
   Trash2, 
   Plus,
-  AlertCircle,
-  BookOpen,
   Users,
   ExternalLink
 } from 'lucide-react';
@@ -44,91 +41,93 @@ const LiveClassManager: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchCourses();
-    loadSchedules();
+    const initializeData = async () => {
+      await fetchCourses();
+      await loadSchedules();
+    };
+    initializeData();
   }, []);
 
   const fetchCourses = async () => {
     try {
-      // Get admin token from localStorage (set during admin login)
-      const adminToken = localStorage.getItem('adminToken');
-      console.log('Admin token:', adminToken); // Debug log
+      const token = localStorage.getItem('adminToken');
       
-      const response = await fetch('/api/courses', {
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/admin/courses', {
         headers: {
           'Content-Type': 'application/json',
-          // Use the admin token from localStorage if available, otherwise use fallback
-          'x-admin-token': adminToken || 'admin-authenticated',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
-      console.log('Courses API response status:', response.status); // Debug log
-
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.data?.courses) {
           setCourses(data.data.courses);
-          console.log('Courses loaded successfully:', data.data.courses.length); // Debug log
+          console.log('Courses loaded successfully:', data.data.courses.length);
+        } else {
+          throw new Error('Invalid response format');
         }
       } else {
-        const errorData = await response.json();
-        console.log('API failed with error:', errorData); // Debug log
-        // Mock data for demo
-        setCourses([
-          { _id: '1', title: 'UPSC Prelims Complete Course 2025', enrollmentCount: 150 },
-          { _id: '2', title: 'Class 12 Physics Complete Course', enrollmentCount: 89 },
-          { _id: '3', title: 'SSC CGL Preparation Course', enrollmentCount: 203 },
-        ]);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
-      // Mock data for demo
-      setCourses([
-        { _id: '1', title: 'UPSC Prelims Complete Course 2025', enrollmentCount: 150 },
-        { _id: '2', title: 'Class 12 Physics Complete Course', enrollmentCount: 89 },
-        { _id: '3', title: 'SSC CGL Preparation Course', enrollmentCount: 203 },
-      ]);
+      toast.error('Failed to load courses: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setCourses([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadSchedules = () => {
-    // Load from localStorage for demo
-    const saved = localStorage.getItem('liveClassSchedules');
-    if (saved) {
-      setSchedules(JSON.parse(saved));
-    } else {
-      // Generate some demo schedules
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+  const loadSchedules = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
       
-      const demoSchedules: LiveClassSchedule[] = [
-        {
-          id: '1',
-          courseId: '1',
-          courseTitle: 'UPSC Prelims Complete Course 2025',
-          date: today.toISOString().split('T')[0],
-          time: '19:00',
-          meetLink: 'https://meet.google.com/abc-defg-hij',
-          description: 'Daily live session - Current Affairs and Mock Test Discussion',
-          isActive: true,
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/admin/meeting-links', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        {
-          id: '2',
-          courseId: '1',
-          courseTitle: 'UPSC Prelims Complete Course 2025',
-          date: tomorrow.toISOString().split('T')[0],
-          time: '19:00',
-          meetLink: 'https://meet.google.com/xyz-uvwx-123',
-          description: 'Tomorrow\'s session - Indian Polity and Constitution',
-          isActive: false,
-        },
-      ];
-      
-      setSchedules(demoSchedules);
-      localStorage.setItem('liveClassSchedules', JSON.stringify(demoSchedules));
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.liveSessions) {
+          // Transform backend data to frontend format
+          const transformedSchedules: LiveClassSchedule[] = data.data.liveSessions.map((session: any) => ({
+            id: session.sessionId, // This is the MongoDB _id of the live session
+            courseId: session.courseId,
+            courseTitle: session.courseTitle,
+            date: new Date(session.scheduledDate).toISOString().split('T')[0],
+            time: session.scheduledTime,
+            meetLink: session.meetLink,
+            description: session.sessionTitle || 'Live session',
+            isActive: session.isActive
+          }));
+          
+          setSchedules(transformedSchedules);
+          console.log('Live sessions loaded:', transformedSchedules.length);
+        } else {
+          setSchedules([]);
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error loading schedules:', error);
+      toast.error('Failed to load live sessions');
+      setSchedules([]);
     }
   };
 
@@ -145,15 +144,18 @@ const LiveClassManager: React.FC = () => {
     }
 
     try {
-      // Try to save to backend first
-      const adminToken = localStorage.getItem('adminToken');
-      console.log('Saving live session with admin token:', adminToken);
+      const token = localStorage.getItem('adminToken');
       
-      const response = await fetch(`http://localhost:5000/api/courses/${newSchedule.courseId}/live-session`, {
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/admin/courses/${newSchedule.courseId}/live-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': 'admin-authenticated',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           date: newSchedule.date,
@@ -167,66 +169,197 @@ const LiveClassManager: React.FC = () => {
         const data = await response.json();
         console.log('Live session saved to backend:', data);
         toast.success('Live session scheduled successfully!');
+        
+        // Reset form
+        setNewSchedule({
+          courseId: '',
+          date: '',
+          time: '19:00',
+          meetLink: '',
+          description: '',
+        });
+        
+        // Reload schedules to show the new one
+        await loadSchedules();
       } else {
         const errorData = await response.json();
         console.log('Backend save failed:', errorData);
         toast.error(`Failed to save: ${errorData.message || 'Unknown error'}`);
-        // Still save locally for demo purposes
       }
     } catch (error) {
       console.error('Error saving live session:', error);
       toast.error('Failed to save live session to server');
-      // Still save locally for demo purposes
     }
-
-    // Always save locally for demo/offline purposes
-    const schedule: LiveClassSchedule = {
-      id: Date.now().toString(),
-      courseId: newSchedule.courseId,
-      courseTitle: course.title,
-      date: newSchedule.date,
-      time: newSchedule.time,
-      meetLink: newSchedule.meetLink,
-      description: newSchedule.description || `Live session for ${course.title}`,
-      isActive: new Date(`${newSchedule.date}T${newSchedule.time}`) <= new Date(),
-    };
-
-    const updatedSchedules = [...schedules, schedule];
-    setSchedules(updatedSchedules);
-    localStorage.setItem('liveClassSchedules', JSON.stringify(updatedSchedules));
-
-    // Reset form
-    setNewSchedule({
-      courseId: '',
-      date: '',
-      time: '19:00',
-      meetLink: '',
-      description: '',
-    });
-
-    toast.success('Live class scheduled successfully!');
   };
 
-  const handleDeleteSchedule = (id: string) => {
-    const updatedSchedules = schedules.filter(s => s.id !== id);
-    setSchedules(updatedSchedules);
-    localStorage.setItem('liveClassSchedules', JSON.stringify(updatedSchedules));
-    toast.success('Schedule deleted successfully!');
+  const handleDeleteSchedule = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this live session? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // Find the schedule to get course ID and session ID
+      const schedule = schedules.find(s => s.id === id);
+      if (!schedule) {
+        toast.error('Session not found');
+        return;
+      }
+
+      console.log('Attempting to delete session:', { sessionId: id, courseId: schedule.courseId });
+
+      // Make API call to delete the session from backend
+      const token = localStorage.getItem('adminToken');
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/admin/courses/${schedule.courseId}/live-session/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      console.log('Delete response:', responseData);
+
+      if (response.ok && responseData.success) {
+        console.log('Live session deleted from backend successfully');
+        
+        // Remove from local state immediately for better UX
+        const updatedSchedules = schedules.filter(s => s.id !== id);
+        setSchedules(updatedSchedules);
+        
+        toast.success('Live session deleted successfully!');
+        
+        // Force reload data to ensure consistency
+        await loadSchedules();
+      } else {
+        console.error('Backend delete failed:', responseData);
+        toast.error(`Failed to delete: ${responseData.message || 'Session may be corrupted. Try force delete.'}`);
+        
+        // Offer force delete option
+        if (window.confirm('Regular delete failed. Would you like to try force delete? This will remove the session from frontend and refresh data.')) {
+          const updatedSchedules = schedules.filter(s => s.id !== id);
+          setSchedules(updatedSchedules);
+          await loadSchedules();
+          toast.success('Session removed from display. If it reappears, there may be a database issue.');
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting live session:', error);
+      toast.error('Failed to delete live session. Network or server error.');
+      
+      // Offer force delete option for network errors
+      if (window.confirm('Delete failed due to network error. Would you like to try force delete from frontend?')) {
+        const updatedSchedules = schedules.filter(s => s.id !== id);
+        setSchedules(updatedSchedules);
+        toast.success('Session removed from display. Please check if deletion persisted after page refresh.');
+      }
+    }
   };
 
   const handleSaveSchedules = async () => {
     setSaving(true);
     
     try {
-      // In a real implementation, this would save to the backend
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      localStorage.setItem('liveClassSchedules', JSON.stringify(schedules));
-      toast.success('All schedules saved successfully!');
+      // Refresh data from backend
+      await loadSchedules();
+      toast.success('Schedules refreshed from server!');
     } catch (error) {
-      toast.error('Failed to save schedules');
+      toast.error('Failed to refresh schedules');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleForceDeleteAll = async () => {
+    if (!window.confirm('⚠️ WARNING: This will force delete ALL live sessions from display. This should only be used if individual deletions are failing. Continue?')) {
+      return;
+    }
+
+    if (!window.confirm('🚨 FINAL WARNING: Are you absolutely sure? This will clear all live sessions from the current view.')) {
+      return;
+    }
+
+    try {
+      // Clear all schedules from frontend
+      setSchedules([]);
+      toast.success('All sessions cleared from display. Refresh to see if any persist in database.');
+      
+      // Optional: Try to refresh data to see what remains
+      setTimeout(async () => {
+        await loadSchedules();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error force deleting all sessions:', error);
+      toast.error('Failed to clear sessions');
+    }
+  };
+
+  const handleBulkDeleteByCourse = async () => {
+    if (schedules.length === 0) {
+      toast.error('No sessions to delete');
+      return;
+    }
+
+    // Group sessions by course
+    const courseGroups = schedules.reduce((acc, schedule) => {
+      if (!acc[schedule.courseId]) {
+        acc[schedule.courseId] = {
+          courseTitle: schedule.courseTitle,
+          sessions: []
+        };
+      }
+      acc[schedule.courseId].sessions.push(schedule);
+      return acc;
+    }, {} as any);
+
+    const courseOptions = Object.keys(courseGroups).map(courseId => ({
+      id: courseId,
+      title: courseGroups[courseId].courseTitle,
+      count: courseGroups[courseId].sessions.length
+    }));
+
+    const selectedCourse = courseOptions[0]; // For demo, select first course
+    
+    if (window.confirm(`Delete all ${selectedCourse.count} live sessions from "${selectedCourse.title}"?`)) {
+      try {
+        const token = localStorage.getItem('adminToken');
+        
+        if (!token) {
+          toast.error('Authentication required. Please login again.');
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse.id}/live-sessions/all`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          toast.success(`Deleted ${data.deletedCount || selectedCourse.count} sessions from ${selectedCourse.title}`);
+          await loadSchedules(); // Refresh data
+        } else {
+          throw new Error('Backend deletion failed');
+        }
+      } catch (error) {
+        console.error('Bulk delete error:', error);
+        toast.error('Backend deletion failed. Trying frontend cleanup...');
+        
+        // Fallback: remove from frontend
+        const updatedSchedules = schedules.filter(s => s.courseId !== selectedCourse.id);
+        setSchedules(updatedSchedules);
+        toast.success('Sessions removed from display');
+      }
     }
   };
 
@@ -278,8 +411,28 @@ const LiveClassManager: React.FC = () => {
           className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
           <Save className="h-4 w-4" />
-          <span>{saving ? 'Saving...' : 'Save All'}</span>
+          <span>{saving ? 'Refreshing...' : 'Refresh Data'}</span>
         </button>
+        
+        {schedules.length > 0 && (
+          <>
+            <button
+              onClick={handleBulkDeleteByCourse}
+              className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Bulk Delete by Course</span>
+            </button>
+            
+            <button
+              onClick={handleForceDeleteAll}
+              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Force Delete All</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Add New Schedule Form */}
@@ -359,6 +512,19 @@ const LiveClassManager: React.FC = () => {
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Scheduled Live Classes</h3>
+          
+          {/* Debug Info */}
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+            <strong>Debug Info:</strong> Found {schedules.length} live sessions from API
+            {schedules.length > 0 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer">Show Raw Session Data</summary>
+                <pre className="mt-2 text-xs bg-white p-2 rounded border overflow-auto max-h-40">
+                  {JSON.stringify(schedules, null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
         </div>
 
         {schedules.length === 0 ? (
@@ -432,19 +598,6 @@ const LiveClassManager: React.FC = () => {
               ))}
           </div>
         )}
-      </div>
-
-      {/* Demo Notice */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-          <div>
-            <h4 className="text-yellow-800 font-medium">Demo Mode</h4>
-            <p className="text-yellow-700 text-sm mt-1">
-              Schedules are stored locally for demonstration. In production, these would be saved to your database and students would see them in their Live Classes page.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

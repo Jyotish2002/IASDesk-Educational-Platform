@@ -1,23 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const Course = require('../models/Course');
 const CurrentAffair = require('../models/CurrentAffair');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const GoogleMeet = require('../models/GoogleMeet');
 const { adminAuth } = require('../middleware/auth');
 const { simpleAdminAuth } = require('../middleware/simpleAdminAuth');
+const { uploadCourseImage } = require('../config/cloudinary');
 
 // @route   POST /api/admin/courses
 // @desc    Add new course (admin only)
 // @access  Private (Admin)
-router.post('/courses', simpleAdminAuth, async (req, res) => {
+router.post('/courses', simpleAdminAuth, uploadCourseImage.single('image'), async (req, res) => {
   try {
+    console.log('=== CREATE COURSE DEBUG ===');
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+    console.log('Content-Type:', req.headers['content-type']);
+    
     const {
       title,
       description,
-      imageURL,
       price,
-      originalPrice,
       category,
       duration,
       level,
@@ -27,29 +33,66 @@ router.post('/courses', simpleAdminAuth, async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!title || !description || !imageURL || !price || !category) {
+    if (!title || !description || !price || !category) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields: title, description, imageURL, price, category'
+        message: 'Please provide all required fields: title, description, price, category'
       });
+    }
+
+    // Get image URL from uploaded file or use default
+    let imageURL = '/api/placeholder/400/250'; // Default image
+    if (req.file) {
+      imageURL = req.file.path; // Cloudinary URL
+    }
+
+    // Parse JSON fields if they come as strings from FormData
+    let parsedFeatures = features;
+    let parsedCurriculum = curriculum;
+    let parsedInstructor = instructor;
+
+    try {
+      if (typeof features === 'string') {
+        parsedFeatures = JSON.parse(features);
+      }
+      if (typeof curriculum === 'string') {
+        parsedCurriculum = JSON.parse(curriculum);
+      }
+      if (typeof instructor === 'string') {
+        parsedInstructor = JSON.parse(instructor);
+      }
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      // Use defaults if parsing fails
+      parsedFeatures = parsedFeatures || ['Live Classes', 'Study Material', 'Test Series'];
+      parsedCurriculum = parsedCurriculum || [];
+      parsedInstructor = parsedInstructor || { name: 'IASDesk Expert Faculty', bio: 'Expert instructor' };
     }
 
     const course = new Course({
       title: title.trim(),
       description: description.trim(),
-      imageURL: imageURL.trim(),
+      imageURL: imageURL,
       price: parseFloat(price),
-      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+      originalPrice: price ? Math.round(parseFloat(price) * 1.5) : undefined, // Auto-calculate original price
       category: category.trim(),
-      duration,
-      level,
-      features,
-      curriculum,
-      instructor,
-      createdBy: req.user._id
+      duration: duration || '6 months',
+      level: level || 'Beginner',
+      features: parsedFeatures || ['Live Classes', 'Study Material', 'Test Series'],
+      curriculum: parsedCurriculum || [],
+      instructor: parsedInstructor || { name: 'IASDesk Expert Faculty', bio: 'Expert instructor' },
+      createdBy: req.user?._id, // Now using proper ObjectId from middleware
+      isActive: true
     });
 
     await course.save();
+
+    console.log('Course created successfully:', {
+      id: course._id,
+      title: course.title,
+      category: course.category,
+      price: course.price
+    });
 
     res.status(201).json({
       success: true,
@@ -58,6 +101,24 @@ router.post('/courses', simpleAdminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Create course error:', error);
+    
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors
+      });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course with this title already exists'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.'
@@ -186,13 +247,16 @@ router.get('/courses', simpleAdminAuth, async (req, res) => {
 // @access  Private (Admin)
 router.post('/current-affairs', simpleAdminAuth, async (req, res) => {
   try {
+    console.log('=== CREATE CURRENT AFFAIR DEBUG ===');
+    console.log('Request body:', req.body);
+    
     const {
       title,
       content,
+      summary,
       category,
       tags,
-      imageURL,
-      importance
+      isActive
     } = req.body;
 
     // Validate required fields
@@ -203,13 +267,23 @@ router.post('/current-affairs', simpleAdminAuth, async (req, res) => {
       });
     }
 
+    // Parse tags if it comes as array or string
+    let parsedTags = [];
+    if (tags) {
+      if (Array.isArray(tags)) {
+        parsedTags = tags;
+      } else if (typeof tags === 'string') {
+        parsedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
+    }
+
     const currentAffair = new CurrentAffair({
       title: title.trim(),
       content: content.trim(),
+      summary: summary ? summary.trim() : '',
       category: category.trim(),
-      tags,
-      imageURL,
-      importance,
+      tags: parsedTags,
+      isActive: isActive === 'true' || isActive === true || isActive === 'on',
       createdBy: req.user._id
     });
 
@@ -218,13 +292,14 @@ router.post('/current-affairs', simpleAdminAuth, async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Current affair created successfully',
-      data: { currentAffair }
+      data: currentAffair
     });
   } catch (error) {
     console.error('Create current affair error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: 'Server error. Please try again later.',
+      error: error.message
     });
   }
 });
@@ -234,14 +309,43 @@ router.post('/current-affairs', simpleAdminAuth, async (req, res) => {
 // @access  Private (Admin)
 router.put('/current-affairs/:id', simpleAdminAuth, async (req, res) => {
   try {
+    console.log('=== UPDATE CURRENT AFFAIR DEBUG ===');
+    console.log('Request body:', req.body);
+    
     const currentAffairId = req.params.id;
-    const updateFields = req.body;
+    const {
+      title,
+      content,
+      summary,
+      category,
+      tags,
+      isActive
+    } = req.body;
 
-    // Remove fields that shouldn't be updated directly
-    delete updateFields._id;
-    delete updateFields.createdBy;
-    delete updateFields.createdAt;
-    delete updateFields.updatedAt;
+    // Prepare update fields
+    const updateFields = {
+      title: title?.trim(),
+      content: content?.trim(),
+      summary: summary?.trim(),
+      category: category?.trim(),
+      isActive: isActive === 'true' || isActive === true || isActive === 'on'
+    };
+
+    // Parse tags if provided
+    if (tags) {
+      if (Array.isArray(tags)) {
+        updateFields.tags = tags;
+      } else if (typeof tags === 'string') {
+        updateFields.tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
+    }
+
+    // Remove undefined fields
+    Object.keys(updateFields).forEach(key => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      }
+    });
 
     const currentAffair = await CurrentAffair.findByIdAndUpdate(
       currentAffairId,
@@ -259,13 +363,14 @@ router.put('/current-affairs/:id', simpleAdminAuth, async (req, res) => {
     res.json({
       success: true,
       message: 'Current affair updated successfully',
-      data: { currentAffair }
+      data: currentAffair
     });
   } catch (error) {
     console.error('Update current affair error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: 'Server error. Please try again later.',
+      error: error.message
     });
   }
 });
@@ -703,7 +808,7 @@ router.get('/payments', simpleAdminAuth, async (req, res) => {
 // @access  Private (Admin)
 router.put('/courses/:id/schedule', simpleAdminAuth, async (req, res) => {
   try {
-    const { dailyTime, meetLink, timezone } = req.body;
+    const { dailyTime, meetLink, timezone, assignedTeachers } = req.body;
 
     if (!dailyTime || !meetLink) {
       return res.status(400).json({
@@ -721,11 +826,31 @@ router.put('/courses/:id/schedule', simpleAdminAuth, async (req, res) => {
       });
     }
 
+    // Create or update GoogleMeet session for daily schedule
+    const today = new Date();
+    const googleMeetSession = new GoogleMeet({
+      title: `Daily Class - ${course.title}`,
+      description: `Daily scheduled class for ${course.title}`,
+      date: today,
+      startTime: dailyTime,
+      endTime: dailyTime, // For daily schedule, start and end can be same
+      meetLink,
+      type: 'daily-schedule',
+      subject: course.category || course.title,
+      assignedTeachers: assignedTeachers || [],
+      createdBy: req.user.id,
+      status: 'active'
+    });
+
+    await googleMeetSession.save();
+
     // Update course with daily schedule
     course.meetSchedule = {
       dailyTime,
       timezone: timezone || 'Asia/Kolkata',
-      isActive: true
+      isActive: true,
+      assignedTeachers: assignedTeachers || [],
+      googleMeetId: googleMeetSession._id // Link to GoogleMeet document
     };
     course.meetLink = meetLink;
     course.updatedAt = new Date();
@@ -735,10 +860,54 @@ router.put('/courses/:id/schedule', simpleAdminAuth, async (req, res) => {
     res.json({
       success: true,
       message: 'Daily schedule set successfully',
-      data: { course }
+      data: { course, googleMeetSession }
     });
   } catch (error) {
     console.error('Set daily schedule error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/courses/:id/schedule
+// @desc    Delete daily schedule for course (admin only)
+// @access  Private (Admin)
+router.delete('/courses/:id/schedule', simpleAdminAuth, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Delete GoogleMeet session if it exists
+    if (course.meetSchedule && course.meetSchedule.googleMeetId) {
+      await GoogleMeet.findByIdAndDelete(course.meetSchedule.googleMeetId);
+    }
+
+    // Clear the daily schedule
+    course.meetSchedule = {
+      dailyTime: '',
+      timezone: 'Asia/Kolkata',
+      isActive: false
+    };
+    course.meetLink = '';
+    course.updatedAt = new Date();
+
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Daily schedule deleted successfully',
+      data: { course }
+    });
+  } catch (error) {
+    console.error('Delete daily schedule error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.'
@@ -751,7 +920,7 @@ router.put('/courses/:id/schedule', simpleAdminAuth, async (req, res) => {
 // @access  Private (Admin)
 router.post('/courses/:id/live-session', simpleAdminAuth, async (req, res) => {
   try {
-    const { date, time, meetLink, title } = req.body;
+    const { date, time, meetLink, title, assignedTeachers } = req.body;
 
     if (!date || !time || !meetLink || !title) {
       return res.status(400).json({
@@ -774,13 +943,32 @@ router.post('/courses/:id/live-session', simpleAdminAuth, async (req, res) => {
       course.liveSessions = [];
     }
 
-    // Add new live session
+    // Create session in GoogleMeet collection for teachers
+    const googleMeetSession = new GoogleMeet({
+      title,
+      description: `Live session for ${course.title}`,
+      date: new Date(date),
+      startTime: time,
+      endTime: time, // You might want to add endTime to the form
+      meetLink,
+      type: 'live-session',
+      subject: course.category || course.title,
+      assignedTeachers: assignedTeachers || [],
+      createdBy: req.user.id,
+      status: 'active'
+    });
+
+    await googleMeetSession.save();
+
+    // Add new live session to course (keeping existing functionality)
     const newSession = {
-      date: new Date(date), // Convert string to Date
+      date: new Date(date),
       time,
       meetLink,
       title,
-      isActive: true
+      isActive: true,
+      assignedTeachers: assignedTeachers || [],
+      googleMeetId: googleMeetSession._id // Link to GoogleMeet document
     };
 
     course.liveSessions.push(newSession);
@@ -788,13 +976,120 @@ router.post('/courses/:id/live-session', simpleAdminAuth, async (req, res) => {
 
     await course.save();
 
+    // Populate teacher names for response
+    const populatedSession = await GoogleMeet.findById(googleMeetSession._id)
+      .populate('assignedTeachers', 'name email');
+
     res.json({
       success: true,
       message: 'Live session added successfully',
-      data: { course }
+      data: { 
+        course,
+        googleMeetSession: populatedSession
+      }
     });
   } catch (error) {
     console.error('Add live session error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/courses/:courseId/live-session/:sessionId
+// @desc    Delete a specific live session from a course (admin only)
+// @access  Private (Admin)
+router.delete('/courses/:courseId/live-session/:sessionId', simpleAdminAuth, async (req, res) => {
+  try {
+    const { courseId, sessionId } = req.params;
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Find the session
+    const session = course.liveSessions.find(
+      session => session._id.toString() === sessionId
+    );
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: 'Live session not found'
+      });
+    }
+
+    // Delete from GoogleMeet collection if googleMeetId exists
+    if (session.googleMeetId) {
+      await GoogleMeet.findByIdAndUpdate(session.googleMeetId, { status: 'cancelled' });
+    } else {
+      // Try to find the session in GoogleMeet collection by other criteria
+      await GoogleMeet.updateMany({
+        title: session.title,
+        date: session.date,
+        startTime: session.time
+      }, { status: 'cancelled' });
+    }
+
+    // Remove the session from course
+    course.liveSessions = course.liveSessions.filter(
+      s => s._id.toString() !== sessionId
+    );
+    course.updatedAt = new Date();
+
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Live session deleted successfully',
+      data: { course }
+    });
+  } catch (error) {
+    console.error('Delete live session error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/courses/:courseId/live-sessions/all
+// @desc    Force delete all live sessions from a course (admin only)
+// @access  Private (Admin)
+router.delete('/courses/:courseId/live-sessions/all', simpleAdminAuth, async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    const deletedCount = course.liveSessions ? course.liveSessions.length : 0;
+
+    // Clear all live sessions
+    course.liveSessions = [];
+    course.updatedAt = new Date();
+
+    await course.save();
+
+    res.json({
+      success: true,
+      message: `All ${deletedCount} live sessions deleted successfully`,
+      data: { course, deletedCount }
+    });
+  } catch (error) {
+    console.error('Force delete all live sessions error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.'
@@ -875,6 +1170,265 @@ router.get('/meeting-links', simpleAdminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// ===== TEACHER MANAGEMENT ROUTES =====
+
+// @route   POST /api/admin/create-teacher
+// @desc    Create a new teacher account with just mobile number
+// @access  Private (Admin only)
+router.post('/create-teacher', simpleAdminAuth, async (req, res) => {
+  try {
+    const { mobile } = req.body;
+
+    // Validate required fields
+    if (!mobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required'
+      });
+    }
+
+    // Validate mobile number
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid 10-digit mobile number'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ mobile: mobile });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Teacher with this mobile number already exists'
+      });
+    }
+
+    // Create teacher account with minimal info
+    const teacher = new User({
+      name: '', // Empty initially, teacher will set this
+      email: '', // Empty initially, teacher can set this
+      mobile: mobile.trim(),
+      password: '', // No password initially
+      role: 'teacher',
+      isVerified: true,
+      isActive: true,
+      isProfileComplete: false, // Flag to indicate profile needs completion
+      subject: '',
+      experience: 0,
+      bio: '',
+      specialization: [],
+      rating: 0,
+      isOnline: false
+    });
+
+    await teacher.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Teacher account created successfully. Teacher can now login with mobile number.',
+      data: {
+        teacher: {
+          id: teacher._id,
+          mobile: teacher.mobile,
+          role: teacher.role,
+          isProfileComplete: teacher.isProfileComplete
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error creating teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while creating teacher account'
+    });
+  }
+});
+
+// @route   GET /api/admin/teachers
+// @desc    Get all teachers
+// @access  Private (Admin only)
+router.get('/teachers', simpleAdminAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
+    
+    // Build search query
+    let searchQuery = { role: 'teacher' };
+    
+    if (search) {
+      searchQuery.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { subject: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (status !== 'all') {
+      searchQuery.isActive = status === 'active';
+    }
+
+    const teachers = await User.find(searchQuery)
+      .select('-password -__v')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await User.countDocuments(searchQuery);
+
+    res.json({
+      success: true,
+      data: {
+        teachers,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching teachers'
+    });
+  }
+});
+
+// @route   PUT /api/admin/teacher/:id
+// @desc    Update teacher details
+// @access  Private (Admin only)
+router.put('/teacher/:id', simpleAdminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      email,
+      subject,
+      experience,
+      bio,
+      specialization,
+      isActive
+    } = req.body;
+
+    const teacher = await User.findOne({ _id: id, role: 'teacher' });
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Update fields
+    if (name) teacher.name = name.trim();
+    if (email) teacher.email = email.toLowerCase().trim();
+    if (subject) teacher.subject = subject.trim();
+    if (experience !== undefined) teacher.experience = experience;
+    if (bio !== undefined) teacher.bio = bio.trim();
+    if (specialization) teacher.specialization = specialization;
+    if (isActive !== undefined) teacher.isActive = isActive;
+
+    await teacher.save();
+
+    res.json({
+      success: true,
+      message: 'Teacher updated successfully',
+      data: {
+        teacher: {
+          id: teacher._id,
+          name: teacher.name,
+          email: teacher.email,
+          subject: teacher.subject,
+          experience: teacher.experience,
+          bio: teacher.bio,
+          specialization: teacher.specialization,
+          isActive: teacher.isActive
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error updating teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating teacher'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/teacher/:id
+// @desc    Delete teacher account
+// @access  Private (Admin only)
+router.delete('/teacher/:id', simpleAdminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const teacher = await User.findOne({ _id: id, role: 'teacher' });
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: 'Teacher account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting teacher'
+    });
+  }
+});
+
+// @route   POST /api/admin/reset-teacher-password/:id
+// @desc    Reset teacher password to mobile number
+// @access  Private (Admin only)
+router.post('/reset-teacher-password/:id', simpleAdminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const teacher = await User.findOne({ _id: id, role: 'teacher' });
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Reset password to mobile number
+    const tempPassword = teacher.mobile;
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(tempPassword, saltRounds);
+
+    teacher.password = hashedPassword;
+    teacher.mustChangePassword = true;
+    await teacher.save();
+
+    res.json({
+      success: true,
+      message: 'Teacher password reset successfully',
+      data: {
+        tempPassword: tempPassword
+      }
+    });
+  } catch (error) {
+    console.error('Error resetting teacher password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while resetting password'
     });
   }
 });

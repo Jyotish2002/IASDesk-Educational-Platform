@@ -7,9 +7,11 @@ import {
   Video,
   Star,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { tokenUtils } from '../utils/token';
 
 interface Course {
   id: string;
@@ -20,6 +22,8 @@ interface Course {
   enrollmentDate?: string;
   rating?: number;
   image?: string;
+  meetLink?: string;
+  hasLiveSessions?: boolean;
 }
 
 const MyCourses: React.FC = () => {
@@ -38,7 +42,7 @@ const MyCourses: React.FC = () => {
       setLoading(true);
       
       // Get user's enrolled courses from backend with payment verification
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const token = tokenUtils.getToken();
       const response = await fetch('http://localhost:5000/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -48,6 +52,8 @@ const MyCourses: React.FC = () => {
 
       const userData = await response.json();
       
+      console.log('User data from API:', userData); // Debug log
+      
       if (userData.success && userData.data.user && userData.data.user.enrolledCourses) {
         // Filter only courses with payment verification
         const validEnrollments = userData.data.user.enrolledCourses.filter((enrollment: any) => 
@@ -56,15 +62,26 @@ const MyCourses: React.FC = () => {
 
         const courses: Course[] = validEnrollments.map((enrollment: any) => {
           const course = enrollment.courseId;
+          console.log('Course data:', course); // Debug log
           return {
             id: course._id || course,
             title: course.title || `Course ${course._id || course}`,
-            instructor: course.instructor || 'Expert Instructor',
+            instructor: course.instructor?.name || course.instructor || 'Expert Instructor',
             category: course.category || 'General',
             lastAccessed: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
             enrollmentDate: enrollment.enrolledAt || new Date().toISOString(),
             rating: course.rating || (4.5 + Math.random() * 0.5),
-            image: course.image || `https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=250&fit=crop&crop=entropy&auto=format&q=80`
+            image: course.imageURL || course.image || `https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=250&fit=crop&crop=entropy&auto=format&q=80`,
+            meetLink: course.meetLink, // Add meeting link info
+            hasLiveSessions: course.liveSessions && course.liveSessions.filter((session: any) => {
+              // Filter out demo/test sessions
+              const sessionTitle = session.title?.toLowerCase() || '';
+              return session.isActive && 
+                     !sessionTitle.includes('demo') && 
+                     !sessionTitle.includes('test') && 
+                     sessionTitle !== 'english' &&
+                     sessionTitle.length >= 5;
+            }).length > 0 // Only count non-demo live sessions
           };
         });
         
@@ -193,6 +210,14 @@ const MyCourses: React.FC = () => {
                       Enrolled
                     </span>
                   </div>
+                  {(course.meetLink || course.hasLiveSessions) && (
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white bg-blue-500">
+                        <Video className="h-3 w-3 mr-1" />
+                        Live Classes
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Course Content */}
@@ -219,6 +244,24 @@ const MyCourses: React.FC = () => {
                   <p className="text-xs text-gray-500 mb-4">
                     Enrolled: {formatDate(course.enrollmentDate || '')}
                   </p>
+
+                  {/* Live Classes Info */}
+                  {(course.meetLink || course.hasLiveSessions) && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center text-blue-800 mb-1">
+                        <Video className="h-4 w-4 mr-2" />
+                        <span className="text-sm font-medium">Live Classes Available</span>
+                      </div>
+                      <p className="text-xs text-blue-600">
+                        {course.meetLink && course.hasLiveSessions 
+                          ? 'Regular classes + Special sessions'
+                          : course.meetLink 
+                          ? 'Regular live classes'
+                          : 'Special live sessions'
+                        }
+                      </p>
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex space-x-2">
@@ -266,6 +309,18 @@ const MyCourses: React.FC = () => {
               <div>
                 <h4 className="font-medium text-gray-900">Live Classes</h4>
                 <p className="text-sm text-gray-500">Join live sessions with instructors</p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400 ml-auto" />
+            </Link>
+
+            <Link
+              to="/chat"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <MessageCircle className="h-8 w-8 text-blue-600 mr-3" />
+              <div>
+                <h4 className="font-medium text-gray-900">Chat with Teachers</h4>
+                <p className="text-sm text-gray-500">Get instant help and doubt resolution</p>
               </div>
               <ArrowRight className="h-5 w-5 text-gray-400 ml-auto" />
             </Link>

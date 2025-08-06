@@ -44,7 +44,7 @@ interface Course {
 
 const Courses: React.FC = () => {
   const { category } = useParams<{ category?: string }>();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -118,12 +118,7 @@ const Courses: React.FC = () => {
     };
 
     fetchCourses();
-
-    // Load enrolled courses from localStorage
-    const enrolled = localStorage.getItem('enrolledCourses');
-    if (enrolled) {
-      setEnrolledCourses(JSON.parse(enrolled));
-    }
+    // Enrolled courses are now fetched from the user profile via AuthContext
   }, [category]);
 
   const handleEnrollCourse = (course: Course) => {
@@ -139,17 +134,8 @@ const Courses: React.FC = () => {
   const handlePaymentSuccess = (course: Course) => {
     const updatedEnrolled = [...enrolledCourses, course.id];
     setEnrolledCourses(updatedEnrolled);
-    localStorage.setItem('enrolledCourses', JSON.stringify(updatedEnrolled));
-    
-    // Also store course details for better display
-    const enrolledCoursesDetails = JSON.parse(localStorage.getItem('enrolledCoursesDetails') || '{}');
-    enrolledCoursesDetails[course.id] = {
-      id: course.id,
-      title: course.title,
-      instructor: course.instructor,
-      category: course.category
-    };
-    localStorage.setItem('enrolledCoursesDetails', JSON.stringify(enrolledCoursesDetails));
+    // Course enrollment is now handled by the backend
+    // The user's enrolled courses will be updated in their profile
     
     setShowPaymentModal(false);
     setSelectedCourse(null);
@@ -226,12 +212,14 @@ const Courses: React.FC = () => {
                 : 'No courses are available yet.'
               }
             </p>
-            <Link
-              to="/admin-login"
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Add Courses (Admin)
-            </Link>
+            {user?.isAdmin && (
+              <Link
+                to="/admin-login"
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Add Courses (Admin)
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

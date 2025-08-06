@@ -14,6 +14,13 @@ import LiveClasses from './pages/LiveClasses';
 import Settings from './pages/Settings';
 import SimplifiedAdminDashboard from './pages/SimplifiedAdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import CurrentAffairs from './pages/CurrentAffairs';
+import CurrentAffairDetail from './pages/CurrentAffairDetail';
+import TeacherInitialLogin from './components/TeacherInitialLogin';
+import TeacherCompleteProfile from './components/TeacherCompleteProfile';
+import TeacherDashboard from './components/TeacherDashboard';
+import TeacherLogin from './pages/TeacherLogin';
+import StudentTeacherChat from './pages/StudentTeacherChat';
 
 function App() {
   return (
@@ -33,7 +40,13 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin" element={<SimplifiedAdminDashboard />} />
               <Route path="/admin-login" element={<AdminLogin />} />
-              <Route path="/current-affairs" element={<div className="p-8 text-center">Current Affairs page coming soon...</div>} />
+              <Route path="/current-affairs" element={<CurrentAffairs />} />
+              <Route path="/current-affairs/:id" element={<CurrentAffairDetail />} />
+              <Route path="/teacher-login" element={<TeacherLogin />} />
+              <Route path="/teacher/initial-login" element={<TeacherInitialLogin />} />
+              <Route path="/teacher/complete-profile" element={<TeacherCompleteProfile />} />
+              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/chat" element={<StudentTeacherChat />} />
               <Route path="/about" element={<div className="p-8 text-center">About page coming soon...</div>} />
               <Route path="/contact" element={<div className="p-8 text-center">Contact page coming soon...</div>} />
               <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />

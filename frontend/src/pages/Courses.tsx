@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { 
   Users, 
   Play, 
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
+import { tokenUtils } from '../utils/token';
 import toast from 'react-hot-toast';
 
 interface Course {
@@ -38,7 +39,12 @@ interface Course {
 
 const Courses: React.FC = () => {
   const { category } = useParams<{ category?: string }>();
-  const { isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Get category from either URL params or query params
+  const currentCategory = category || searchParams.get('category') || '';
+  
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -51,9 +57,9 @@ const Courses: React.FC = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        let url = '/api/courses';
-        if (category) {
-          url += `?category=${encodeURIComponent(category)}`;
+        let url = 'http://localhost:5000/api/courses';
+        if (currentCategory) {
+          url += `?category=${encodeURIComponent(currentCategory)}`;
         }
 
         console.log('Fetching courses from:', url);
@@ -113,11 +119,11 @@ const Courses: React.FC = () => {
     if (isAuthenticated) {
       loadEnrolledCourses();
     }
-  }, [category, isAuthenticated]);
+  }, [currentCategory, isAuthenticated]);
 
   const loadEnrolledCourses = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const token = tokenUtils.getToken();
       const response = await fetch('http://localhost:5000/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -168,7 +174,7 @@ const Courses: React.FC = () => {
     if (!course) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const token = tokenUtils.getToken();
       
       if (!token) {
         toast.error('Please login to purchase courses');
@@ -267,22 +273,11 @@ const Courses: React.FC = () => {
   };
 
   const getCategoryTitle = () => {
-    switch (category) {
-      case 'upsc':
-        return 'UPSC Civil Services';
-      case 'school':
-        return 'Class 5-12';
-      case 'ssc':
-        return 'SSC Exams';
-      case 'banking':
-        return 'Banking';
-      case 'state-psc':
-        return 'State PSC';
-      case 'jee-neet':
-        return 'JEE & NEET';
-      default:
-        return 'All Courses';
-    }
+    const categoryName = currentCategory;
+    if (!categoryName) return 'All Courses';
+    
+    // Return the category name as is for better display
+    return categoryName;
   };
 
   if (loading) {
@@ -301,6 +296,41 @@ const Courses: React.FC = () => {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Breadcrumb */}
+          {currentCategory && (
+            <nav className="flex mb-4" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1 md:space-x-3">
+                <li className="inline-flex items-center">
+                  <Link
+                    to="/"
+                    className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600"
+                  >
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <div className="flex items-center">
+                    <span className="mx-2 text-gray-400">/</span>
+                    <Link
+                      to="/courses"
+                      className="ml-1 text-sm font-medium text-gray-700 hover:text-primary-600 md:ml-2"
+                    >
+                      All Courses
+                    </Link>
+                  </div>
+                </li>
+                <li aria-current="page">
+                  <div className="flex items-center">
+                    <span className="mx-2 text-gray-400">/</span>
+                    <span className="ml-1 text-sm font-medium text-primary-600 md:ml-2">
+                      {getCategoryTitle()}
+                    </span>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+          )}
+          
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{getCategoryTitle()}</h1>
@@ -309,6 +339,35 @@ const Courses: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <select 
+                className="border border-gray-300 rounded-lg px-4 py-2"
+                value={currentCategory}
+                onChange={(e) => {
+                  const newCategory = e.target.value;
+                  if (newCategory) {
+                    window.location.href = `/courses?category=${encodeURIComponent(newCategory)}`;
+                  } else {
+                    window.location.href = '/courses';
+                  }
+                }}
+              >
+                <option value="">All Categories</option>
+                <option value="UPSC">UPSC Civil Services</option>
+                <option value="UPSC Prelims">UPSC Prelims</option>
+                <option value="UPSC Mains">UPSC Mains</option>
+                <option value="UPSC Interview">UPSC Interview</option>
+                <option value="UPSC Optional">UPSC Optional</option>
+                <option value="Class 5-12">Class 5-12</option>
+                <option value="Class 5-8">Class 5-8</option>
+                <option value="Class 9-10">Class 9-10</option>
+                <option value="Class 11-12 Science">Class 11-12 Science</option>
+                <option value="Class 11-12 Commerce">Class 11-12 Commerce</option>
+                <option value="SSC">SSC Exams</option>
+                <option value="Banking">Banking</option>
+                <option value="State PSC">State PSC</option>
+                <option value="JEE & NEET">JEE & NEET</option>
+                <option value="Current Affairs">Current Affairs</option>
+              </select>
               <select className="border border-gray-300 rounded-lg px-4 py-2">
                 <option>Sort by Popularity</option>
                 <option>Price: Low to High</option>
@@ -327,17 +386,19 @@ const Courses: React.FC = () => {
             <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses found</h3>
             <p className="text-gray-600 mb-6">
-              {category 
+              {currentCategory 
                 ? `No courses are available in the ${getCategoryTitle()} category yet.`
                 : 'No courses are available yet.'
               }
             </p>
-            <Link
-              to="/admin-login"
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Add Courses (Admin)
-            </Link>
+            {user?.isAdmin && (
+              <Link
+                to="/admin-login"
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Add Courses (Admin)
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

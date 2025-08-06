@@ -108,11 +108,7 @@ const CourseDetails: React.FC = () => {
 
     fetchCourse();
 
-    // Load enrolled courses
-    const enrolled = localStorage.getItem('enrolledCourses');
-    if (enrolled) {
-      setEnrolledCourses(JSON.parse(enrolled));
-    }
+    // Enrolled courses are now fetched from the user profile via AuthContext
   }, [courseId]);
 
   const handleEnrollCourse = () => {
@@ -127,17 +123,8 @@ const CourseDetails: React.FC = () => {
     if (course) {
       const updatedEnrolled = [...enrolledCourses, course.id];
       setEnrolledCourses(updatedEnrolled);
-      localStorage.setItem('enrolledCourses', JSON.stringify(updatedEnrolled));
-      
-      // Also store course details for better display
-      const enrolledCoursesDetails = JSON.parse(localStorage.getItem('enrolledCoursesDetails') || '{}');
-      enrolledCoursesDetails[course.id] = {
-        id: course.id,
-        title: course.title,
-        instructor: course.instructor,
-        category: course.category
-      };
-      localStorage.setItem('enrolledCoursesDetails', JSON.stringify(enrolledCoursesDetails));
+      // Course enrollment is now handled by the backend
+      // The user's enrolled courses will be updated in their profile
       
       setShowPaymentModal(false);
       toast.success(`Successfully enrolled in ${course.title}!`);

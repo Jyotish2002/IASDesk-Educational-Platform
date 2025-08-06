@@ -20,20 +20,20 @@ const Footer: React.FC = () => {
 
   const quickLinks = [
     { name: 'All Courses', path: '/courses' },
-    { name: 'UPSC Preparation', path: '/courses/upsc' },
-    { name: 'SSC Exams', path: '/courses/ssc' },
-    { name: 'Banking Exams', path: '/courses/banking' },
-    { name: 'Class 5-12', path: '/courses/school' },
+    { name: 'UPSC Preparation', path: '/courses?category=UPSC' },
+    { name: 'SSC Exams', path: '/courses?category=SSC' },
+    { name: 'Banking Exams', path: '/courses?category=Banking' },
+    { name: 'Class 5-12', path: '/courses?category=Class%205-12' },
     { name: 'Current Affairs', path: '/current-affairs' }
   ];
 
   const examCategories = [
-    { name: 'UPSC Civil Services', path: '/courses/upsc' },
-    { name: 'SSC CGL/CHSL', path: '/courses/ssc' },
-    { name: 'Banking PO/Clerk', path: '/courses/banking' },
-    { name: 'Railway Exams', path: '/courses/railway' },
-    { name: 'State PSC', path: '/courses/state-psc' },
-    { name: 'Defense Exams', path: '/courses/defense' }
+    { name: 'UPSC Civil Services', path: '/courses?category=UPSC' },
+    { name: 'SSC CGL/CHSL', path: '/courses?category=SSC' },
+    { name: 'Banking PO/Clerk', path: '/courses?category=Banking' },
+    { name: 'Railway Exams', path: '/courses?category=Railway' },
+    { name: 'State PSC', path: '/courses?category=State%20PSC' },
+    { name: 'Defense Exams', path: '/courses?category=Defense' }
   ];
 
   const supportLinks = [

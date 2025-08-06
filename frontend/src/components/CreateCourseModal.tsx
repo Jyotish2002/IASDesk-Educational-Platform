@@ -28,13 +28,28 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ isOpen, onClose, 
   const [imagePreview, setImagePreview] = useState<string>('');
 
   const categories = [
-    'UPSC Civil Services',
+    // UPSC Categories
+    'UPSC',
+    'UPSC Prelims',
+    'UPSC Mains',
+    'UPSC Interview',
+    'UPSC Optional',
+    
+    // Class Categories
     'Class 5-12',
+    'Class 5-8',
+    'Class 9-10',
+    'Class 11-12 Science',
+    'Class 11-12 Commerce',
+    
+    // Other Competitive Exams
+    'SSC',
     'SSC Exams',
     'Banking',
     'State PSC',
     'JEE & NEET',
-    'Current Affairs',
+    
+    // General Categories
     'General Knowledge'
   ];
 
@@ -91,13 +106,8 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ isOpen, onClose, 
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
-      
       console.log('=== COURSE CREATION DEBUG ===');
-      console.log('Token from localStorage:', token ? 'Present' : 'Missing');
-      console.log('Admin Token from localStorage:', adminToken ? 'Present' : 'Missing');
-      console.log('Admin Token value:', adminToken);
+      console.log('Using admin authentication for course creation');
       
       // Create FormData for file upload
       const formDataToSend = new FormData();
@@ -119,21 +129,22 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ isOpen, onClose, 
         console.log('- No image file selected');
       }
 
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('adminToken');
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
       }
 
-      if (adminToken) {
-        headers['x-admin-token'] = adminToken;
-      }
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${token}`
+      };
 
       console.log('Making request to create course with headers:', headers);
-      console.log('Request URL: /api/courses');
+      console.log('Request URL: http://localhost:5000/api/admin/courses');
       console.log('Request method: POST');
       
-      const response = await fetch('/api/courses', {
+      const response = await fetch('http://localhost:5000/api/admin/courses', {
         method: 'POST',
         headers,
         body: formDataToSend // Don't set Content-Type, let browser set it for FormData

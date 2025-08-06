@@ -11,6 +11,7 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { tokenUtils } from '../utils/token';
 
 interface Course {
   id: string;
@@ -58,11 +59,10 @@ const AdminDashboard: React.FC = () => {
 
   const loadCourses = async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const token = tokenUtils.getAdminToken();
       const response = await fetch('http://localhost:5000/api/admin/courses', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
           'Content-Type': 'application/json'
         }
       });
@@ -104,11 +104,10 @@ const AdminDashboard: React.FC = () => {
 
   const loadMeetSessions = async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const token = tokenUtils.getAdminToken();
       const response = await fetch('http://localhost:5000/api/admin/meeting-links', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
           'Content-Type': 'application/json'
         }
       });
@@ -154,12 +153,11 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteCourse = async (courseId: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+        const token = tokenUtils.getAdminToken();
         const response = await fetch(`http://localhost:5000/api/admin/courses/${courseId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
             'Content-Type': 'application/json'
           }
         });
@@ -185,7 +183,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleSaveCourse = async (courseData: Partial<Course>) => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const token = tokenUtils.getAdminToken();
       const url = editingCourse 
         ? `http://localhost:5000/api/admin/courses/${editingCourse.id}`
         : 'http://localhost:5000/api/admin/courses';
@@ -224,7 +222,6 @@ const AdminDashboard: React.FC = () => {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
-          'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(backendData)
@@ -275,7 +272,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleSaveMeetSession = async (sessionData: Partial<MeetSession>) => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+      const token = tokenUtils.getAdminToken();
       
       if (editingMeet) {
         // For editing, we need to update the course's liveSessions array
@@ -297,7 +294,6 @@ const AdminDashboard: React.FC = () => {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'x-admin-token': process.env.REACT_APP_ADMIN_SECRET || 'admin_secret_key',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(backendData)
@@ -874,12 +870,20 @@ const CourseModal: React.FC<{
                   required
                 >
                   <option value="">Select Category</option>
-                  <option value="upsc">UPSC</option>
-                  <option value="school">Class 5-12</option>
-                  <option value="ssc">SSC</option>
-                  <option value="banking">Banking</option>
-                  <option value="state-psc">State PSC</option>
-                  <option value="jee-neet">JEE & NEET</option>
+                  <option value="UPSC">UPSC</option>
+                  <option value="UPSC Prelims">UPSC Prelims</option>
+                  <option value="UPSC Mains">UPSC Mains</option>
+                  <option value="UPSC Interview">UPSC Interview</option>
+                  <option value="UPSC Optional">UPSC Optional</option>
+                  <option value="Class 5-12">Class 5-12</option>
+                  <option value="Class 5-8">Class 5-8</option>
+                  <option value="Class 9-10">Class 9-10</option>
+                  <option value="Class 11-12 Science">Class 11-12 Science</option>
+                  <option value="Class 11-12 Commerce">Class 11-12 Commerce</option>
+                  <option value="SSC">SSC</option>
+                  <option value="Banking">Banking</option>
+                  <option value="State PSC">State PSC</option>
+                  <option value="JEE & NEET">JEE & NEET</option>
                 </select>
               </div>
 

@@ -50,23 +50,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
   const fetchUsers = async (page = 1, search = '') => {
     try {
       setLoading(true);
-      const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
       
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      // Add appropriate authentication headers
-      if (adminToken === 'admin-authenticated') {
-        headers['x-admin-token'] = adminToken;
-      }
-      if (authToken && authToken.startsWith('admin-token-')) {
-        headers['Authorization'] = `Bearer ${authToken}`;
+      const token = localStorage.getItem('adminToken');
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
       }
       
       const response = await fetch(`http://localhost:5000/api/admin/users?page=${page}&limit=10&search=${search}`, {
-        headers
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const data = await response.json();
@@ -156,24 +152,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
 
     try {
       setLoading(true);
-      const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('adminToken');
       
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      // Add appropriate authentication headers
-      if (adminToken === 'admin-authenticated') {
-        headers['x-admin-token'] = adminToken;
-      }
-      if (authToken && authToken.startsWith('admin-token-')) {
-        headers['Authorization'] = `Bearer ${authToken}`;
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        return;
       }
       
       const response = await fetch('http://localhost:5000/api/admin/cleanup-enrollments', {
         method: 'POST',
-        headers
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const data = await response.json();
