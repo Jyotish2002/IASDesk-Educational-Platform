@@ -90,13 +90,13 @@ const CurrentAffairs: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <BookOpen className="h-8 w-8 text-primary-600 mr-3" />
-              <h1 className="text-3xl font-bold text-gray-900">Current Affairs</h1>
+            <div className="flex items-center justify-center mb-3 sm:mb-4">
+              <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600 mr-2 sm:mr-3" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Current Affairs</h1>
             </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-4 sm:px-0">
               Stay updated with the latest news and current events important for competitive exam preparation
             </p>
           </div>
@@ -104,15 +104,17 @@ const CurrentAffairs: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter by category:</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Filter by category:</span>
+            </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 sm:px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base w-full sm:w-auto"
             >
               <option value="all">All Categories</option>
               {categories.map((category) => (
@@ -122,17 +124,17 @@ const CurrentAffairs: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             {currentAffairs.length} article{currentAffairs.length !== 1 ? 's' : ''} found
           </div>
         </div>
 
         {/* Current Affairs Grid */}
         {currentAffairs.length === 0 ? (
-          <div className="text-center py-16">
-            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No current affairs found</h3>
-            <p className="text-gray-600">
+          <div className="text-center py-12 sm:py-16">
+            <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No current affairs found</h3>
+            <p className="text-sm sm:text-base text-gray-600 px-4 sm:px-0">
               {selectedCategory === 'all'
                 ? 'No current affairs articles are available yet.'
                 : `No articles found in the ${selectedCategory} category.`
@@ -140,33 +142,33 @@ const CurrentAffairs: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {currentAffairs.map((article) => (
               <div
                 key={article._id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-200"
+                className="bg-white rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-200"
               >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 space-y-2 sm:space-y-0">
+                    <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 w-fit">
                       {article.category}
                     </span>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Calendar className="h-4 w-4 mr-1" />
+                    <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       {formatDate(article.createdAt)}
                     </div>
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 line-clamp-2">
                     {article.title}
                   </h3>
                   
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <p className="text-gray-600 text-sm mb-3 sm:mb-4 line-clamp-3">
                     {article.summary || truncateContent(article.content)}
                   </p>
                   
                   {article.tags && article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
                       {article.tags.slice(0, 3).map((tag, index) => (
                         <span
                           key={index}
@@ -185,10 +187,10 @@ const CurrentAffairs: React.FC = () => {
                   
                   <Link
                     to={`/current-affairs/${article._id}`}
-                    className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-sm group"
+                    className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-xs sm:text-sm group"
                   >
                     Read full article
-                    <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>

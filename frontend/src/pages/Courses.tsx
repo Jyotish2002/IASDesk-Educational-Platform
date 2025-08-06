@@ -295,11 +295,11 @@ const Courses: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Breadcrumb */}
           {currentCategory && (
-            <nav className="flex mb-4" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <nav className="flex mb-3 sm:mb-4" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1 md:space-x-3 text-sm">
                 <li className="inline-flex items-center">
                   <Link
                     to="/"
@@ -331,16 +331,16 @@ const Courses: React.FC = () => {
             </nav>
           )}
           
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{getCategoryTitle()}</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{getCategoryTitle()}</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
                 {courses.length} course{courses.length !== 1 ? 's' : ''} available
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <select 
-                className="border border-gray-300 rounded-lg px-4 py-2"
+                className="border border-gray-300 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base w-full sm:w-auto"
                 value={currentCategory}
                 onChange={(e) => {
                   const newCategory = e.target.value;
@@ -401,70 +401,70 @@ const Courses: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {courses.map((course) => (
-              <div key={course.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div key={course.id} className="bg-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
                 <div className="relative">
                   <img
                     src={course.image}
                     alt={course.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-40 sm:h-48 object-cover"
                   />
                 </div>
 
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">
                     {course.title}
                   </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-2">
                     {course.description}
                   </p>
 
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
                     <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       <span>By {course.instructor}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-gray-900">₹{course.price.toLocaleString()}</span>
+                      <span className="text-xl sm:text-2xl font-bold text-gray-900">₹{course.price.toLocaleString()}</span>
                       {course.originalPrice > course.price && (
-                        <span className="text-lg text-gray-500 line-through">₹{course.originalPrice.toLocaleString()}</span>
+                        <span className="text-base sm:text-lg text-gray-500 line-through">₹{course.originalPrice.toLocaleString()}</span>
                       )}
                     </div>
                     {course.originalPrice > course.price && (
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs sm:text-sm font-medium">
                         {Math.round((1 - course.price / course.originalPrice) * 100)}% OFF
                       </span>
                     )}
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {isEnrolled(course.id) ? (
                       <div className="flex space-x-2">
                         <Link
                           to={`/course-content/${course.id}`}
-                          className="flex-1 bg-green-600 text-white text-center py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center"
+                          className="flex-1 bg-green-600 text-white text-center py-2 sm:py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center text-sm sm:text-base"
                         >
-                          <Play className="h-4 w-4 mr-2" />
+                          <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                           Continue Learning
                         </Link>
                       </div>
                     ) : (
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                         <button
                           onClick={() => handleViewDetails(course)}
-                          className="flex-1 border border-primary-600 text-primary-600 text-center py-3 rounded-lg font-medium hover:bg-primary-50 transition-colors"
+                          className="flex-1 border border-primary-600 text-primary-600 text-center py-2 sm:py-3 rounded-lg font-medium hover:bg-primary-50 transition-colors text-sm sm:text-base"
                         >
                           View Details
                         </button>
                         <button
                           onClick={() => handleEnrollCourse(course)}
-                          className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center justify-center"
+                          className="flex-1 bg-primary-600 text-white py-2 sm:py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center justify-center text-sm sm:text-base"
                         >
-                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                           Enroll Now
                         </button>
                       </div>

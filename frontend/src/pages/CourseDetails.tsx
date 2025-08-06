@@ -356,9 +356,9 @@ const CourseDetails: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
       <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link to="/courses" className="flex items-center text-primary-600 hover:text-primary-700">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <Link to="/courses" className="flex items-center text-primary-600 hover:text-primary-700 text-sm sm:text-base">
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Back to Courses
           </Link>
         </div>
@@ -366,37 +366,37 @@ const CourseDetails: React.FC = () => {
 
       {/* Course Header */}
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid lg:grid-cols-3 gap-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
             <div className="lg:col-span-2">
-              <div className="mb-6">
-                <div className="flex items-center mb-4">
-                  <span className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium mr-4">
+              <div className="mb-4 sm:mb-6">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                  <span className="bg-primary-100 text-primary-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                     {course.category.toUpperCase()}
                   </span>
-                  <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-gray-100 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                     {course.level}
                   </span>
                 </div>
                 
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{course.title}</h1>
-                <p className="text-xl text-gray-600 mb-6">{course.description}</p>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">{course.title}</h1>
+                <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-4 sm:mb-6">{course.description}</p>
                 
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center lg:space-x-6 gap-3 sm:gap-4 lg:gap-0 text-xs sm:text-sm text-gray-500">
                   <div className="flex items-center">
-                    <Award className="h-4 w-4 mr-1" />
+                    <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     <span>By {course.instructor}</span>
                   </div>
                   <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-1" />
+                    <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     <span>{course.students.toLocaleString()} students</span>
                   </div>
                   <div className="flex items-center">
-                    <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
+                    <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-yellow-400 fill-current" />
                     <span>{course.rating} ({Math.floor(course.students * 0.7)} reviews)</span>
                   </div>
                   <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     <span>{course.duration}</span>
                   </div>
                 </div>

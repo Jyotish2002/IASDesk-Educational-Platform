@@ -125,38 +125,38 @@ const MyCourses: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h1>
-          <p className="text-gray-600">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Courses</h1>
+          <p className="text-sm sm:text-base text-gray-600">
             Continue your learning journey with {enrolledCourses.length} enrolled course{enrolledCourses.length !== 1 ? 's' : ''}
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <BookOpen className="h-8 w-8 text-blue-600" />
+                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Courses</p>
-                <p className="text-2xl font-semibold text-gray-900">{enrolledCourses.length}</p>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Total Courses</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{enrolledCourses.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Star className="h-8 w-8 text-yellow-600" />
+                <Star className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Average Rating</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Average Rating</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900">
                   {enrolledCourses.length > 0 
                     ? (enrolledCourses.reduce((sum, course) => sum + (course.rating || 0), 0) / enrolledCourses.length).toFixed(1)
                     : '0.0'
@@ -168,10 +168,10 @@ const MyCourses: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">Your Enrolled Courses</h2>
-            <p className="text-sm text-gray-600 mt-1">Access all your enrolled courses and continue learning</p>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
+          <div className="px-4 sm:px-6 py-3 sm:py-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Your Enrolled Courses</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Access all your enrolled courses and continue learning</p>
           </div>
         </div>
 

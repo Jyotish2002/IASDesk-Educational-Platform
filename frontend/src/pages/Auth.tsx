@@ -99,16 +99,16 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         <div className="text-center">
-          <div className="bg-primary-600 text-white p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            {step === 'mobile' ? <Phone className="h-8 w-8" /> : <Shield className="h-8 w-8" />}
+          <div className="bg-primary-600 text-white p-2 sm:p-3 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            {step === 'mobile' ? <Phone className="h-6 w-6 sm:h-8 sm:w-8" /> : <Shield className="h-6 w-6 sm:h-8 sm:w-8" />}
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {step === 'mobile' ? 'Welcome to IASDesk' : 'Verify Your Number'}
           </h2>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-sm sm:text-base text-gray-600">
             {step === 'mobile' 
               ? 'Enter your mobile number to get started' 
               : `We've sent a 6-digit code to ${mobile}`
@@ -116,9 +116,9 @@ const Auth: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
           {step === 'mobile' && (
-            <form onSubmit={handleMobileSubmit} className="space-y-6">
+            <form onSubmit={handleMobileSubmit} className="space-y-5 sm:space-y-6">
               <div>
                 <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
                   Mobile Number
@@ -132,13 +132,13 @@ const Auth: React.FC = () => {
                     id="mobile"
                     value={mobile}
                     onChange={(e) => formatMobile(e.target.value)}
-                    className="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-lg"
+                    className="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-base sm:text-lg"
                     placeholder="Enter 10-digit mobile number"
                     maxLength={10}
                     required
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-xs sm:text-sm text-gray-500">
                   We'll send you an OTP for verification
                 </p>
               </div>
@@ -146,14 +146,14 @@ const Auth: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || mobile.length !== 10}
-                className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center text-base"
               >
                 {loading ? (
                   <div className="loading-spinner"></div>
                 ) : (
                   <>
                     Continue
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </>
                 )}
               </button>
@@ -161,7 +161,7 @@ const Auth: React.FC = () => {
           )}
 
           {step === 'otp' && (
-            <form onSubmit={handleOTPSubmit} className="space-y-6">
+            <form onSubmit={handleOTPSubmit} className="space-y-5 sm:space-y-6">
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
                   Enter OTP
@@ -171,12 +171,12 @@ const Auth: React.FC = () => {
                   id="otp"
                   value={otp}
                   onChange={(e) => formatOTP(e.target.value)}
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-lg text-center tracking-wider"
+                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-base sm:text-lg text-center tracking-wider"
                   placeholder="000000"
                   maxLength={6}
                   required
                 />
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-xs sm:text-sm text-gray-500">
                   Enter the 6-digit code sent to +91 {mobile}
                 </p>
               </div>
@@ -184,14 +184,14 @@ const Auth: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center text-base"
               >
                 {loading ? (
                   <div className="loading-spinner"></div>
                 ) : (
                   <>
                     Verify & Continue
-                    <CheckCircle className="ml-2 h-5 w-5" />
+                    <CheckCircle className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </>
                 )}
               </button>
@@ -203,21 +203,21 @@ const Auth: React.FC = () => {
                     setStep('mobile');
                     setOtp('');
                   }}
-                  className="text-sm text-gray-600 hover:text-gray-800"
+                  className="text-xs sm:text-sm text-gray-600 hover:text-gray-800"
                 >
                   Change mobile number
                 </button>
                 
                 <div>
                   {resendTimer > 0 ? (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500">
                       Resend OTP in {resendTimer}s
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={handleResendOTP}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                      className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
                     >
                       Resend OTP
                     </button>
@@ -228,32 +228,32 @@ const Auth: React.FC = () => {
           )}
 
           {/* Benefits section */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 mb-3">
               What you get with IASDesk:
             </h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                Access to premium courses and study materials
+            <ul className="space-y-2 text-xs sm:text-sm text-gray-600">
+              <li className="flex items-start">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span>Access to premium courses and study materials</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                Daily current affairs updates
+              <li className="flex items-start">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span>Daily current affairs updates</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                Expert guidance and doubt clearing sessions
+              <li className="flex items-start">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span>Expert guidance and doubt clearing sessions</span>
               </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                Track your progress and performance
+              <li className="flex items-start">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span>Track your progress and performance</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-xs sm:text-sm text-gray-500 px-2">
           By continuing, you agree to our{' '}
           <a href="/terms" className="text-primary-600 hover:text-primary-700">
             Terms of Service
