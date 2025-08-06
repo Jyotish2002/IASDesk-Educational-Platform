@@ -16,7 +16,7 @@ const AdminDataDebugger: React.FC = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/courses', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/courses', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ const AdminDataDebugger: React.FC = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/admin/meeting-links', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/meeting-links', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -95,7 +95,7 @@ const AdminDataDebugger: React.FC = () => {
         return;
       }
       
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${firstCourse._id}/live-session`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${firstCourse._id}/live-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

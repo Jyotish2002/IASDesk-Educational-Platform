@@ -141,10 +141,10 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ isOpen, onClose, 
       };
 
       console.log('Making request to create course with headers:', headers);
-      console.log('Request URL: http://localhost:5000/api/admin/courses');
+      console.log('Request URL: https://iasdesk-educational-platform-2.onrender.com/api/admin/courses');
       console.log('Request method: POST');
-      
-      const response = await fetch('http://localhost:5000/api/admin/courses', {
+
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/courses', {
         method: 'POST',
         headers,
         body: formDataToSend // Don't set Content-Type, let browser set it for FormData

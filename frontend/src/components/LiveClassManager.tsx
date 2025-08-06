@@ -48,7 +48,7 @@ const LiveClassManager: React.FC = () => {
     initializeData();
   }, []);
 
-  const fetchCourses = async () => {
+  const fetchCourses = async () => {https://iasdesk-educational-platform-2.onrender.com
     try {
       const token = localStorage.getItem('adminToken');
       
@@ -57,7 +57,7 @@ const LiveClassManager: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/courses', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/courses', {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -94,7 +94,7 @@ const LiveClassManager: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/meeting-links', {
+      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/meeting-links', {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -151,7 +151,7 @@ const LiveClassManager: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${newSchedule.courseId}/live-session`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${newSchedule.courseId}/live-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +215,7 @@ const LiveClassManager: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/courses/${schedule.courseId}/live-session/${id}`, {
+      const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${schedule.courseId}/live-session/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -336,7 +336,7 @@ const LiveClassManager: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/admin/courses/${selectedCourse.id}/live-sessions/all`, {
+        const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${selectedCourse.id}/live-sessions/all`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
