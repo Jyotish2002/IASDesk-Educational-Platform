@@ -136,14 +136,6 @@ router.post('/verify-otp', async (req, res) => {
     // Generate JWT token
     const token = generateToken(user._id);
 
-    // Set httpOnly cookie for secure authentication
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
-
     res.json({
       success: true,
       message: 'OTP verified successfully',
@@ -195,14 +187,6 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(user._id);
-
-    // Set httpOnly cookie for secure authentication
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
 
     res.json({
       success: true,
@@ -344,14 +328,6 @@ router.post('/admin/login', async (req, res) => {
     // Generate JWT token
     const token = generateToken(admin._id);
 
-    // Set httpOnly cookie for secure authentication
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS in production
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
-
     res.json({
       success: true,
       message: 'Admin login successful',
@@ -485,14 +461,6 @@ router.post('/teacher-login', async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(teacher._id);
-
-    // Set httpOnly cookie for secure authentication
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
 
     res.json({
       success: true,
@@ -824,17 +792,12 @@ router.post('/verify-token', async (req, res) => {
 });
 
 // @route   POST /api/auth/logout
-// @desc    Logout user (clear httpOnly cookie)
+// @desc    Logout user (localStorage handled on frontend)
 // @access  Public
 router.post('/logout', (req, res) => {
   try {
-    // Clear the httpOnly cookie
-    res.clearCookie('authToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-
+    // With localStorage authentication, logout is handled on frontend
+    // Backend just confirms the logout request
     res.json({
       success: true,
       message: 'Logged out successfully'
