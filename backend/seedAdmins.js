@@ -19,6 +19,7 @@ const seedAdminUsers = async () => {
         mobile: '9999999999',
         name: 'Super Admin',
         email: 'admin@iasdesk.com',
+        role: 'admin',
         isVerified: true,
         isAdmin: true,
         enrolledCourses: []
@@ -32,6 +33,7 @@ const seedAdminUsers = async () => {
         mobile: '8888888888',
         name: 'IASDesk Admin',
         email: 'iasdesk@iasdesk.com',
+        role: 'admin',
         isVerified: true,
         isAdmin: true,
         enrolledCourses: []

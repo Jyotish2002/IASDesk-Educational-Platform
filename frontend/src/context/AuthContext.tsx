@@ -262,9 +262,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.success && data.data) {
         const { user, token } = data.data;
 
-        // Handle session conflict for admin
-        sessionUtils.handleSessionConflict(user.id);
-        sessionUtils.setActiveSession(user.id);
+        // For admin users, handle session differently
+        if (user.isAdmin || user.role === 'admin') {
+          // Clear any existing sessions for admin
+          sessionUtils.clearSession();
+          
+          // Set new admin session
+          sessionUtils.setActiveSession(user.id);
+        } else {
+          // Handle session conflict for regular users
+          sessionUtils.handleSessionConflict(user.id);
+          sessionUtils.setActiveSession(user.id);
+        }
 
         // Store admin session in localStorage (for compatibility with existing code)
         tokenUtils.setAdminToken(token);

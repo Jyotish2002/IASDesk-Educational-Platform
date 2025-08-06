@@ -58,12 +58,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               if (user.role === 'admin' || user.isAdmin) {
                 setIsAuthorized(true);
               } else {
+                console.log('Admin role check failed:', { userRole: user.role, isAdmin: user.isAdmin });
                 toast.error('Insufficient privileges. Admin access required.');
                 setIsAuthorized(false);
-                // Clear potentially compromised tokens
-                logout();
+                // Don't logout immediately, just deny access
               }
             } else {
+              console.log('Admin verification failed:', data);
               toast.error('Invalid or expired admin session. Please login again.');
               setIsAuthorized(false);
               // Clear invalid admin tokens
@@ -74,8 +75,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             console.error('Admin verification failed:', error);
             toast.error('Failed to verify admin credentials');
             setIsAuthorized(false);
+            // Don't logout on network errors, just deny access
             tokenUtils.clearAdminToken();
-            logout();
           }
         }
         // For teacher routes, verify teacher role

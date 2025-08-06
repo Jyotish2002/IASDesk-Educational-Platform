@@ -60,7 +60,7 @@ const AdminDashboard: React.FC = () => {
   const loadCourses = async () => {
     try {
       const token = tokenUtils.getAdminToken();
-      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/courses', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/courses`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -105,7 +105,7 @@ const AdminDashboard: React.FC = () => {
   const loadMeetSessions = async () => {
     try {
       const token = tokenUtils.getAdminToken();
-      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/meeting-links', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/meeting-links`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -154,7 +154,7 @@ const AdminDashboard: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
         const token = tokenUtils.getAdminToken();
-        const response = await fetch(`https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${courseId}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/courses/${courseId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -185,8 +185,8 @@ const AdminDashboard: React.FC = () => {
     try {
       const token = tokenUtils.getAdminToken();
       const url = editingCourse 
-        ? `https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${editingCourse.id}`
-        : 'https://iasdesk-educational-platform-2.onrender.com/api/admin/courses';
+        ? `${process.env.REACT_APP_API_URL}/admin/courses/${editingCourse.id}`
+        : `${process.env.REACT_APP_API_URL}/admin/courses`;
       
       const method = editingCourse ? 'PUT' : 'POST';
       
@@ -281,7 +281,7 @@ const AdminDashboard: React.FC = () => {
         return;
       } else {
         // Create new live session
-        const url = `https://iasdesk-educational-platform-2.onrender.com/api/admin/courses/${sessionData.courseId}/live-session`;
+        const url = `${process.env.REACT_APP_API_URL}/admin/courses/${sessionData.courseId}/live-session`;
         
         const backendData = {
           date: sessionData.scheduledDate,

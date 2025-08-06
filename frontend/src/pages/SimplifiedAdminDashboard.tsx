@@ -67,7 +67,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
       }
       
       // Fetch dashboard stats from admin API
-      const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/admin/dashboard', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`

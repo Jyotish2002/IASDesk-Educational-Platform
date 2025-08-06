@@ -338,6 +338,7 @@ router.post('/admin/login', async (req, res) => {
           mobile: admin.mobile,
           name: admin.name || 'Admin',
           email: admin.email,
+          role: admin.role || 'admin',
           isAdmin: admin.isAdmin,
           isVerified: admin.isVerified,
           enrolledCourses: admin.enrolledCourses
@@ -617,7 +618,7 @@ router.post('/verify-admin', async (req, res) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await User.findById(decoded.id).select('-password');
       
       if (!user) {
         return res.status(401).json({
@@ -682,7 +683,7 @@ router.post('/verify-teacher', async (req, res) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await User.findById(decoded.id).select('-password');
       
       if (!user) {
         return res.status(401).json({
@@ -745,7 +746,7 @@ router.post('/verify-token', async (req, res) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId)
+      const user = await User.findById(decoded.id)
         .select('-password -__v')
         .populate('enrolledCourses.courseId', 'title price imageURL instructor category level features curriculum meetLink meetSchedule liveSessions rating isActive');
       
