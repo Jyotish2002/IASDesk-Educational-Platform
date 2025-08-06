@@ -64,7 +64,7 @@ const AdminTeacherList: React.FC<AdminTeacherListProps> = ({ onEdit }) => {
         status
       });
 
-      const response = await fetch(`http://localhost:5000/api/admin/teachers?${queryParams}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/teachers?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ const AdminTeacherList: React.FC<AdminTeacherListProps> = ({ onEdit }) => {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
       
-      const response = await fetch(`http://localhost:5000/api/admin/teacher/${teacherId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/teacher/${teacherId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -140,7 +140,7 @@ const AdminTeacherList: React.FC<AdminTeacherListProps> = ({ onEdit }) => {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
       
-      const response = await fetch(`http://localhost:5000/api/admin/reset-teacher-password/${teacherId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/reset-teacher-password/${teacherId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

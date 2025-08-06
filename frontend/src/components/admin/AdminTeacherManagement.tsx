@@ -28,7 +28,7 @@ const AdminTeacherManagement: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/create-teacher', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/create-teacher`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

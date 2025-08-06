@@ -193,7 +193,7 @@ const CourseOverview: React.FC = () => {
       }
 
       // Fetch analytics
-      const analyticsResponse = await fetch('http://localhost:5000/api/admin/dashboard', {
+      const analyticsResponse = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

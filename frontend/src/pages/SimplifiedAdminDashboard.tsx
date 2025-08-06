@@ -67,7 +67,7 @@ const SimplifiedAdminDashboard: React.FC = () => {
       }
       
       // Fetch dashboard stats from admin API
-      const response = await fetch('http://localhost:5000/api/admin/dashboard', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
