@@ -153,7 +153,7 @@ const AdminLogin: React.FC = () => {
             </button>
           </form>
 
-          {/* Demo Credentials */}
+          {/* Demo Credentials
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Demo Admin Credentials:</h3>
             <div className="space-y-2 text-sm text-gray-600">
@@ -175,7 +175,7 @@ const AdminLogin: React.FC = () => {
                 <span className="font-mono">iasdesk2025</span>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Back to Home */}
           <div className="mt-6 text-center">
