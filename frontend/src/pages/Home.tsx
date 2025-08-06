@@ -391,7 +391,7 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Banner Carousel */}
-      <section className="relative h-[50vh] md:h-[60vh] overflow-hidden">
+      <section className="relative h-[40vh] sm:h-[50vh] md:h-[60vh] overflow-hidden">
         <div className="relative w-full h-full">
           {bannerImages.map((slide, index) => (
             <div
@@ -403,52 +403,57 @@ const Home: React.FC = () => {
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-contain object-center"
+                className="w-full h-full object-cover object-center sm:object-contain"
               />
+              {/* Mobile overlay with slide info */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:hidden">
+                <h3 className="text-white font-bold text-lg">{slide.title}</h3>
+                <p className="text-white/90 text-sm">{slide.subtitle}</p>
+              </div>
             </div>
           ))}
           
           {/* Navigation dots */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
             {bannerImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide ? 'bg-white' : 'bg-white/50'
                 }`}
               />
             ))}
           </div>
 
-          {/* Navigation arrows */}
+          {/* Navigation arrows - hidden on mobile */}
           <button
             onClick={() => setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length)}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+            className="hidden sm:block absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors bg-black/20 rounded-full p-1"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerImages.length)}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+            className="hidden sm:block absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors bg-black/20 rounded-full p-1"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
       </section>
 
       {/* Action Buttons Section */}
-      <section className="py-12 bg-gradient-to-r from-primary-600 to-primary-700">
+      <section className="py-8 sm:py-12 bg-gradient-to-r from-primary-600 to-primary-700">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
             Ready to Start Your Success Journey?
           </h2>
-          <p className="text-lg text-gray-200 mb-6 leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-200 mb-4 sm:mb-6 leading-relaxed px-2">
             Join India's most trusted online education platform. Get expert guidance, 
             comprehensive courses, and achieve your career goals with IASDesk.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+          <div className="flex flex-col gap-3 justify-center mb-4 sm:mb-6 px-4 sm:px-0 sm:flex-row">
             <Link
               to="/courses"
               className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-600 bg-white rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -464,17 +469,17 @@ const Home: React.FC = () => {
             </Link>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-white px-4">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-400" />
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
               <span>{loading ? 'Loading...' : stats.find(s => s.label === 'Active Students')?.value || '12.1K+'} Students</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Star className="h-5 w-5 text-yellow-400" />
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
               <span>4.8+ Rating</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-blue-400" />
+              <Award className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
               <span>{loading ? '92%' : stats.find(s => s.label === 'Success Rate')?.value || '92%'} Success Rate</span>
             </div>
           </div>
@@ -482,21 +487,21 @@ const Home: React.FC = () => {
       </section>
 
       {/* Video Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-8 sm:py-12 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               See IASDesk in Action
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600 px-4 sm:px-0">
               Watch how our students achieve success with expert guidance and comprehensive courses
             </p>
           </div>
           
           <div className="flex justify-center">
             <div className="w-full max-w-3xl">
-              <div className="aspect-video bg-white rounded-xl p-2 border border-gray-200 shadow-lg">
-                <div className="h-full rounded-lg overflow-hidden">
+              <div className="aspect-video bg-white rounded-lg sm:rounded-xl p-1 sm:p-2 border border-gray-200 shadow-lg">
+                <div className="h-full rounded-md sm:rounded-lg overflow-hidden">
                   <iframe
                     width="100%"
                     height="100%"
@@ -505,7 +510,7 @@ const Home: React.FC = () => {
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                    className="rounded-lg"
+                    className="rounded-md sm:rounded-lg"
                   ></iframe>
                 </div>
               </div>
@@ -515,22 +520,22 @@ const Home: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-8 sm:py-12 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 text-primary-600 rounded-full mb-3">
-                  <stat.icon className="h-6 w-6" />
+                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 text-primary-600 rounded-full mb-2 sm:mb-3">
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
                   {loading ? (
-                    <div className="animate-pulse bg-gray-200 h-6 w-12 mx-auto rounded"></div>
+                    <div className="animate-pulse bg-gray-200 h-5 sm:h-6 w-8 sm:w-12 mx-auto rounded"></div>
                   ) : (
                     stat.value
                   )}
                 </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -538,53 +543,53 @@ const Home: React.FC = () => {
       </section>
 
       {/* Exam Categories Section */}
-      <section className="py-16">
+      <section className="py-12 sm:py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               Choose Your Exam Category
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4 sm:px-0">
               From UPSC to school education, we cover all major competitive exams 
               with expert faculty and comprehensive study material.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {examCategories.map((category, index) => (
               <Link
                 key={index}
                 to={category.link}
-                className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+                className="group relative bg-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
                 
-                <div className="p-6">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${category.gradient} text-white rounded-lg mb-4`}>
-                    <BookOpen className="h-6 w-6" />
+                <div className="p-4 sm:p-6">
+                  <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${category.gradient} text-white rounded-lg mb-3 sm:mb-4`}>
+                    <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
                     {category.title}
                   </h3>
                   
-                  <p className="text-gray-600 mb-4 leading-relaxed text-sm">
+                  <p className="text-gray-600 mb-3 sm:mb-4 leading-relaxed text-sm">
                     {category.description}
                   </p>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3 sm:mb-4">
                     <span className="flex items-center">
-                      <BookOpen className="h-4 w-4 mr-1" />
+                      <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       {loading ? (
-                        <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                        <div className="animate-pulse bg-gray-200 h-3 sm:h-4 w-12 sm:w-16 rounded"></div>
                       ) : (
                         category.courses
                       )}
                     </span>
                     <span className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       {loading ? (
-                        <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                        <div className="animate-pulse bg-gray-200 h-3 sm:h-4 w-12 sm:w-16 rounded"></div>
                       ) : (
                         category.students
                       )}
@@ -603,25 +608,25 @@ const Home: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 sm:py-16 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
               Success Stories
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600">
               Hear from our successful students who achieved their dreams with IASDesk
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center mb-4">
+              <div key={index} className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center mb-3 sm:mb-4">
                   <img
                     src={testimonial.image}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover mr-3"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover mr-3"
                   />
                   <div>
                     <h4 className="font-bold text-gray-900 text-sm">{testimonial.name}</h4>
@@ -630,9 +635,9 @@ const Home: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex mb-3">
+                <div className="flex mb-2 sm:mb-3">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
+                    <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-current" />
                   ))}
                 </div>
                 
@@ -646,17 +651,17 @@ const Home: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+      <section className="py-12 sm:py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
             Join Thousands of Successful Students
           </h2>
-          <p className="text-lg text-gray-200 mb-6 leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-200 mb-4 sm:mb-6 leading-relaxed px-2 sm:px-0">
             Don't wait any longer. Start your preparation today and join the ranks of 
             successful candidates who achieved their dreams with IASDesk.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col gap-3 justify-center mb-4 sm:mb-6 px-4 sm:px-0 sm:flex-row">
             <Link
               to="/courses"
               className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-600 bg-white rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg"
@@ -672,17 +677,17 @@ const Home: React.FC = () => {
             </Link>
           </div>
           
-          <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm px-4">
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               <span>7-Day Free Trial</span>
             </div>
             <div className="flex items-center">
-              <Target className="h-4 w-4 mr-2" />
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               <span>100% Quality Assured</span>
             </div>
             <div className="flex items-center">
-              <CheckCircle className="h-4 w-4 mr-2" />
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               <span>Expert Faculty</span>
             </div>
           </div>

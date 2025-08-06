@@ -22,16 +22,16 @@ const AdminLogin: React.FC = () => {
   // If logged in as regular user, show access denied
   if (isAuthenticated && !user?.isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="h-8 w-8 text-red-600" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6">
+        <div className="max-w-md w-full bg-white p-6 sm:p-8 rounded-lg shadow-lg text-center">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="h-7 w-7 sm:h-8 sm:w-8 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-6">You don't have admin privileges to access this page.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-6">You don't have admin privileges to access this page.</p>
           <button
             onClick={() => navigate('/')}
-            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
+            className="w-full bg-primary-600 text-white py-2 px-4 text-base rounded-lg hover:bg-primary-700 transition-colors"
           >
             Go to Home
           </button>
@@ -65,20 +65,20 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-primary-900 to-primary-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-primary-900 to-primary-800 flex items-center justify-center px-4 py-6 sm:py-12">
       <div className="max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="h-10 w-10 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Shield className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
-          <p className="text-gray-300">Access the IASDesk Admin Dashboard</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Admin Login</h1>
+          <p className="text-sm sm:text-base text-gray-300">Access the IASDesk Admin Dashboard</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Mobile Field */}
             <div>
               <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
@@ -95,7 +95,7 @@ const AdminLogin: React.FC = () => {
                   required
                   value={formData.mobile}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="block w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   placeholder="Enter 10-digit mobile number"
                   pattern="[0-9]{10}"
                   maxLength={10}
@@ -119,7 +119,7 @@ const AdminLogin: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="block w-full pl-10 pr-10 py-3 text-base border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   placeholder="Enter password"
                 />
                 <button
@@ -140,7 +140,7 @@ const AdminLogin: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-500 focus:ring-opacity-50 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary-600 text-white py-3 px-4 text-base font-medium rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-500 focus:ring-opacity-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -178,7 +178,7 @@ const AdminLogin: React.FC = () => {
           </div> */}
 
           {/* Back to Home */}
-          <div className="mt-6 text-center">
+          <div className="mt-4 sm:mt-6 text-center">
             <button
               onClick={() => navigate('/')}
               className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
