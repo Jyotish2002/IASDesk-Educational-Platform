@@ -50,6 +50,14 @@ router.post('/initial-login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Set httpOnly cookie for secure authentication
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours for initial login
+    });
+
     res.json({
       success: true,
       message: 'Login successful. Please complete your profile.',
@@ -138,6 +146,14 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Set httpOnly cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -153,8 +169,7 @@ router.post('/login', async (req, res) => {
           experience: teacher.experience,
           bio: teacher.bio,
           specialization: teacher.specialization
-        },
-        token
+        }
       }
     });
   } catch (error) {
@@ -597,6 +612,31 @@ router.get('/meet-sessions', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching meet sessions'
+    });
+  }
+});
+
+// @route   POST /api/teachers/logout
+// @desc    Logout teacher (clear httpOnly cookie)
+// @access  Public
+router.post('/logout', (req, res) => {
+  try {
+    // Clear the httpOnly cookie
+    res.clearCookie('authToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
+    res.json({
+      success: true,
+      message: 'Teacher logged out successfully'
+    });
+  } catch (error) {
+    console.error('Teacher logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during logout'
     });
   }
 });

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { tokenUtils } from '../utils/token';
 import toast from 'react-hot-toast';
 
 interface ProtectedRouteProps {
@@ -30,25 +29,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           return;
         }
 
-        // For admin routes, verify admin token with backend
+        // For admin routes, verify admin access with backend
         if (requireAdmin) {
-          const adminToken = tokenUtils.getAdminToken();
-          
-          if (!adminToken) {
-            toast.error('Admin authentication required');
-            setIsAuthorized(false);
-            setIsVerifying(false);
-            return;
-          }
-
-          // Verify admin token with backend
+          // Verify admin access with backend using httpOnly cookies
           try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-admin`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-              }
+              },
+              credentials: 'include' // Include httpOnly cookies
             });
 
             const data = await response.json();
@@ -67,8 +57,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               console.log('Admin verification failed:', data);
               toast.error('Invalid or expired admin session. Please login again.');
               setIsAuthorized(false);
-              // Clear invalid admin tokens
-              tokenUtils.clearAdminToken();
               logout();
             }
           } catch (error) {
@@ -76,29 +64,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             toast.error('Failed to verify admin credentials');
             setIsAuthorized(false);
             // Don't logout on network errors, just deny access
-            tokenUtils.clearAdminToken();
           }
         }
         // For teacher routes, verify teacher role
         else if (requireTeacher) {
           if (user.role === 'teacher') {
-            const token = tokenUtils.getToken();
-            
-            if (!token) {
-              toast.error('Teacher authentication required');
-              setIsAuthorized(false);
-              setIsVerifying(false);
-              return;
-            }
-
-            // Verify teacher token with backend
+            // Verify teacher access with backend using httpOnly cookies
             try {
               const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-teacher`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                }
+                },
+                credentials: 'include' // Include httpOnly cookies
               });
 
               const data = await response.json();
@@ -123,10 +101,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         }
         // For regular authenticated routes
         else {
-          const token = tokenUtils.getToken();
-          
-          if (token && user) {
-            // Basic token verification (can be enhanced with backend verification)
+          if (user) {
+            // User is authenticated, allow access
             setIsAuthorized(true);
           } else {
             setIsAuthorized(false);

@@ -136,6 +136,14 @@ router.post('/verify-otp', async (req, res) => {
     // Generate JWT token
     const token = generateToken(user._id);
 
+    // Set httpOnly cookie for secure authentication
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
     res.json({
       success: true,
       message: 'OTP verified successfully',
@@ -187,6 +195,14 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(user._id);
+
+    // Set httpOnly cookie for secure authentication
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
 
     res.json({
       success: true,
@@ -328,11 +344,19 @@ router.post('/admin/login', async (req, res) => {
     // Generate JWT token
     const token = generateToken(admin._id);
 
+    // Set httpOnly cookie for secure authentication
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS in production
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
     res.json({
       success: true,
       message: 'Admin login successful',
       data: {
-        token,
+        token, // Still send token for compatibility
         user: {
           id: admin._id,
           mobile: admin.mobile,
@@ -461,6 +485,14 @@ router.post('/teacher-login', async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(teacher._id);
+
+    // Set httpOnly cookie for secure authentication
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
 
     res.json({
       success: true,
@@ -735,7 +767,12 @@ router.post('/verify-teacher', async (req, res) => {
 // @access  Private
 router.post('/verify-token', async (req, res) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Try to get token from httpOnly cookie first, then fallback to Authorization header
+    let token = req.cookies?.authToken;
+    
+    if (!token) {
+      token = req.header('Authorization')?.replace('Bearer ', '');
+    }
     
     if (!token) {
       return res.status(401).json({
@@ -782,6 +819,31 @@ router.post('/verify-token', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error during token verification'
+    });
+  }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Logout user (clear httpOnly cookie)
+// @access  Public
+router.post('/logout', (req, res) => {
+  try {
+    // Clear the httpOnly cookie
+    res.clearCookie('authToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during logout'
     });
   }
 });
