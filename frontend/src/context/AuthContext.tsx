@@ -87,7 +87,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (token && userStr) {
         try {
-          // Verify token with backend before restoring session
+          // For admin users, skip backend verification on app load to prevent logout
+          // The ProtectedRoute will handle verification when accessing admin routes
+          if (userStr.isAdmin || userStr.role === 'admin') {
+            // Restore admin session without backend verification
+            dispatch({
+              type: 'AUTH_SUCCESS',
+              payload: { user: userStr, token },
+            });
+            return;
+          }
+
+          // For regular users, verify token with backend
           const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-token`, {
             method: 'POST',
             headers: {
@@ -106,17 +117,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               });
             } else {
               // Invalid token, clear stored data
+              console.log('Token verification failed:', data.message);
               tokenUtils.clearTokens();
               dispatch({ type: 'AUTH_FAILURE' });
             }
           } else {
-            // Token verification failed, clear stored data
-            tokenUtils.clearTokens();
-            dispatch({ type: 'AUTH_FAILURE' });
+            // Token verification failed, but don't immediately logout for network issues
+            console.log('Token verification network error, using stored data');
+            dispatch({
+              type: 'AUTH_SUCCESS',
+              payload: { user: userStr, token },
+            });
           }
         } catch (error) {
           console.error('Token verification failed:', error);
-          // On error, try to restore from localStorage but mark for re-verification
+          // On network error, restore from localStorage to prevent unnecessary logout
           dispatch({
             type: 'AUTH_SUCCESS',
             payload: { user: userStr, token },

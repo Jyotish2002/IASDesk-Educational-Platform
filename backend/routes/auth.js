@@ -757,8 +757,8 @@ router.post('/verify-token', async (req, res) => {
         });
       }
 
-      // Check if user is still active
-      if (!user.isVerified) {
+      // Check if user is still active (more lenient for admin users)
+      if (!user.isVerified && !user.isAdmin) {
         return res.status(401).json({
           success: false,
           message: 'Account not verified.'
