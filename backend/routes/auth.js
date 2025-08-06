@@ -148,7 +148,6 @@ router.post('/verify-otp', async (req, res) => {
       success: true,
       message: 'OTP verified successfully',
       data: {
-        token,
         user: {
           id: user._id,
           mobile: user.mobile,
@@ -208,7 +207,6 @@ router.post('/login', async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
-        token,
         user: {
           id: user._id,
           mobile: user.mobile,
@@ -356,7 +354,6 @@ router.post('/admin/login', async (req, res) => {
       success: true,
       message: 'Admin login successful',
       data: {
-        token, // Still send token for compatibility
         user: {
           id: admin._id,
           mobile: admin.mobile,
@@ -498,7 +495,6 @@ router.post('/teacher-login', async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
-        token,
         user: {
           id: teacher._id,
           name: teacher.name,

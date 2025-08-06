@@ -70,8 +70,7 @@ router.post('/initial-login', async (req, res) => {
           role: teacher.role,
           isProfileComplete: teacher.isProfileComplete,
           subject: teacher.subject
-        },
-        token
+        }
       }
     });
   } catch (error) {

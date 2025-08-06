@@ -149,14 +149,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authAPI.verifyOTP({ mobile, otp });
       
       if (response.data.success && response.data.data) {
-        const { user } = response.data.data; // No token needed with httpOnly cookies
+        const user = response.data.data.user; // Extract user directly
         
         // Handle session conflict
         sessionUtils.handleSessionConflict(user.id);
         sessionUtils.setActiveSession(user.id);
-        
-        // Store user data (no token needed)
-        tokenUtils.setStoredUser(user);
         
         dispatch({
           type: 'AUTH_SUCCESS',
@@ -196,14 +193,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authAPI.login({ mobile });
       
       if (response.data.success && response.data.data) {
-        const { user } = response.data.data; // No token needed with httpOnly cookies
+        const user = response.data.data.user; // Extract user directly
         
         // Handle session conflict
         sessionUtils.handleSessionConflict(user.id);
         sessionUtils.setActiveSession(user.id);
-        
-        // Store user data (no token needed)
-        tokenUtils.setStoredUser(user);
         
         dispatch({
           type: 'AUTH_SUCCESS',
@@ -245,7 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (data.success && data.data) {
-        const { user } = data.data;
+        const user = data.data.user; // Extract user directly
 
         // For admin users, handle session differently
         if (user.isAdmin || user.role === 'admin') {
@@ -259,9 +253,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           sessionUtils.handleSessionConflict(user.id);
           sessionUtils.setActiveSession(user.id);
         }
-
-        // Store user data for compatibility (no token needed with httpOnly cookies)
-        tokenUtils.setStoredUser(user);
 
         dispatch({
           type: 'AUTH_SUCCESS',
@@ -296,7 +287,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     // Clear local session data
-    tokenUtils.clearTokens();
     sessionUtils.clearSession();
     dispatch({ type: 'LOGOUT' });
     toast.success('Logged out successfully');
@@ -308,9 +298,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (response.data.success && response.data.data) {
         const updatedUser = response.data.data.user;
-        
-        // Update stored user data (no token needed)
-        tokenUtils.setStoredUser(updatedUser);
         
         dispatch({
           type: 'UPDATE_USER',

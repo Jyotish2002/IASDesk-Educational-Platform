@@ -55,10 +55,10 @@ export const authAPI = {
   sendOTP: (data: OTPRequest): Promise<AxiosResponse<ApiResponse>> =>
     api.post('/auth/send-otp', data),
 
-  verifyOTP: (data: OTPVerifyRequest): Promise<AxiosResponse<ApiResponse<{ token: string; user: User }>>> =>
+  verifyOTP: (data: OTPVerifyRequest): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>
     api.post('/auth/verify-otp', data),
 
-  login: (data: LoginRequest): Promise<AxiosResponse<ApiResponse<{ token: string; user: User }>>> =>
+  login: (data: LoginRequest): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>
     api.post('/auth/login', data),
 
   getProfile: (): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>
