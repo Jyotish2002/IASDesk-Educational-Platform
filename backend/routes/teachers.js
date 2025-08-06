@@ -62,6 +62,7 @@ router.post('/initial-login', async (req, res) => {
       success: true,
       message: 'Login successful. Please complete your profile.',
       data: {
+        token,
         user: {
           id: teacher._id,
           mobile: teacher.mobile,
@@ -157,6 +158,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
+        token,
         user: {
           id: teacher._id,
           mobile: teacher.mobile,

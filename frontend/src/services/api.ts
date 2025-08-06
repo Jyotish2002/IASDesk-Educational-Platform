@@ -14,6 +14,7 @@ import {
   CourseFilters,
   CurrentAffairFilters
 } from '../types';
+import { tokenUtils } from '../utils/token';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://iasdesk-educational-platform-2.onrender.com/api';
 
@@ -21,16 +22,18 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://iasdesk-education
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  withCredentials: true, // Include httpOnly cookies in requests
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor (no need to add auth token for httpOnly cookies)
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    // No need to add Authorization header with httpOnly cookies
+    const token = tokenUtils.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -43,7 +46,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid - redirect to auth
+      // Token expired or invalid
+      tokenUtils.clearTokens();
       window.location.href = '/auth';
     }
     return Promise.reject(error);
@@ -55,10 +59,10 @@ export const authAPI = {
   sendOTP: (data: OTPRequest): Promise<AxiosResponse<ApiResponse>> =>
     api.post('/auth/send-otp', data),
 
-  verifyOTP: (data: OTPVerifyRequest): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>
+  verifyOTP: (data: OTPVerifyRequest): Promise<AxiosResponse<ApiResponse<{ token: string; user: User }>>> =>
     api.post('/auth/verify-otp', data),
 
-  login: (data: LoginRequest): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>
+  login: (data: LoginRequest): Promise<AxiosResponse<ApiResponse<{ token: string; user: User }>>> =>
     api.post('/auth/login', data),
 
   getProfile: (): Promise<AxiosResponse<ApiResponse<{ user: User }>>> =>

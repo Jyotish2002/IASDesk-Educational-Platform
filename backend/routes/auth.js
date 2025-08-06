@@ -148,6 +148,7 @@ router.post('/verify-otp', async (req, res) => {
       success: true,
       message: 'OTP verified successfully',
       data: {
+        token,
         user: {
           id: user._id,
           mobile: user.mobile,
@@ -207,6 +208,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
+        token,
         user: {
           id: user._id,
           mobile: user.mobile,
@@ -354,6 +356,7 @@ router.post('/admin/login', async (req, res) => {
       success: true,
       message: 'Admin login successful',
       data: {
+        token,
         user: {
           id: admin._id,
           mobile: admin.mobile,
@@ -495,6 +498,7 @@ router.post('/teacher-login', async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
+        token,
         user: {
           id: teacher._id,
           name: teacher.name,
@@ -763,11 +767,11 @@ router.post('/verify-teacher', async (req, res) => {
 // @access  Private
 router.post('/verify-token', async (req, res) => {
   try {
-    // Try to get token from httpOnly cookie first, then fallback to Authorization header
-    let token = req.cookies?.authToken;
+    // Try to get token from Authorization header first, then fallback to cookies
+    let token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      token = req.header('Authorization')?.replace('Bearer ', '');
+      token = req.cookies?.authToken;
     }
     
     if (!token) {

@@ -79,39 +79,65 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for authentication on app load
+  // Check for stored token on app load
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        // For httpOnly cookies, we can't check the token directly
-        // Instead, try to verify with the backend using the cookie
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include' // Include httpOnly cookies
-        });
+      const token = tokenUtils.getToken();
+      const userStr = tokenUtils.getStoredUser();
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data?.user) {
-            // Use fresh user data from backend
+      if (token && userStr) {
+        try {
+          // For admin users, skip backend verification on app load to prevent logout
+          // The ProtectedRoute will handle verification when accessing admin routes
+          if (userStr.isAdmin || userStr.role === 'admin') {
+            // Restore admin session without backend verification
             dispatch({
               type: 'AUTH_SUCCESS',
-              payload: { user: data.data.user, token: 'cookie-based' }, // placeholder token
+              payload: { user: userStr, token },
             });
-          } else {
-            // No valid session
-            dispatch({ type: 'AUTH_FAILURE' });
+            return;
           }
-        } else {
-          // No valid session or network error
-          dispatch({ type: 'AUTH_FAILURE' });
+
+          // For regular users, verify token with backend
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data?.user) {
+              // Use fresh user data from backend
+              dispatch({
+                type: 'AUTH_SUCCESS',
+                payload: { user: data.data.user, token },
+              });
+            } else {
+              // Invalid token, clear stored data
+              console.log('Token verification failed:', data.message);
+              tokenUtils.clearTokens();
+              dispatch({ type: 'AUTH_FAILURE' });
+            }
+          } else {
+            // Token verification failed, but don't immediately logout for network issues
+            console.log('Token verification network error, using stored data');
+            dispatch({
+              type: 'AUTH_SUCCESS',
+              payload: { user: userStr, token },
+            });
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          // On network error, restore from localStorage to prevent unnecessary logout
+          dispatch({
+            type: 'AUTH_SUCCESS',
+            payload: { user: userStr, token },
+          });
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        // Network error, assume not authenticated
+      } else {
         dispatch({ type: 'AUTH_FAILURE' });
       }
     };
@@ -149,15 +175,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authAPI.verifyOTP({ mobile, otp });
       
       if (response.data.success && response.data.data) {
-        const user = response.data.data.user; // Extract user directly
+        const { user, token } = response.data.data;
         
         // Handle session conflict
         sessionUtils.handleSessionConflict(user.id);
         sessionUtils.setActiveSession(user.id);
         
+        // Store in localStorage
+        tokenUtils.setToken(token);
+        tokenUtils.setStoredUser(user);
+        
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user, token: 'cookie-based' }, // placeholder token
+          payload: { user, token },
         });
         
         toast.success(response.data.message);
@@ -178,10 +208,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (userData?: User): void => {
     if (userData) {
       // Direct login with user data (for teacher login)
-      dispatch({
-        type: 'AUTH_SUCCESS',
-        payload: { user: userData, token: 'cookie-based' }, // placeholder token
-      });
+      const token = tokenUtils.getToken();
+      if (token) {
+        dispatch({
+          type: 'AUTH_SUCCESS',
+          payload: { user: userData, token },
+        });
+      }
     }
   };
 
@@ -193,15 +226,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authAPI.login({ mobile });
       
       if (response.data.success && response.data.data) {
-        const user = response.data.data.user; // Extract user directly
+        const { user, token } = response.data.data;
         
         // Handle session conflict
         sessionUtils.handleSessionConflict(user.id);
         sessionUtils.setActiveSession(user.id);
         
+        // Store tokens using tokenUtils
+        tokenUtils.setToken(token);
+        tokenUtils.setStoredUser(user);
+        
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user, token: 'cookie-based' }, // placeholder token
+          payload: { user, token },
         });
         
         toast.success(response.data.message);
@@ -229,7 +266,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Include httpOnly cookies
         body: JSON.stringify({
           mobile: username, // username is actually mobile number
           password: password
@@ -239,7 +275,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (data.success && data.data) {
-        const user = data.data.user; // Extract user directly
+        const { user, token } = data.data;
 
         // For admin users, handle session differently
         if (user.isAdmin || user.role === 'admin') {
@@ -254,9 +290,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           sessionUtils.setActiveSession(user.id);
         }
 
+        // Store admin session in localStorage (for compatibility with existing code)
+        tokenUtils.setAdminToken(token);
+        tokenUtils.setStoredUser(user);
+
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user, token: 'cookie-based' }, // placeholder token
+          payload: { user, token },
         });
 
         toast.success(`Welcome ${user.name}! Admin access granted.`);
@@ -274,19 +314,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      // Call backend logout to clear httpOnly cookie
-      await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', // Include httpOnly cookies
-      });
-    } catch (error) {
-      console.error('Logout API call failed:', error);
-      // Continue with client-side logout even if API fails
-    }
-    
-    // Clear local session data
+  const logout = () => {
+    tokenUtils.clearTokens();
     sessionUtils.clearSession();
     dispatch({ type: 'LOGOUT' });
     toast.success('Logged out successfully');

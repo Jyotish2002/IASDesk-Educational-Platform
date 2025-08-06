@@ -3,11 +3,11 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    // Try to get token from httpOnly cookie first, then fallback to Authorization header
-    let token = req.cookies?.authToken;
+    // Try to get token from Authorization header first, then fallback to cookies
+    let token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      token = req.header('Authorization')?.replace('Bearer ', '');
+      token = req.cookies?.authToken;
     }
 
     if (!token) {
