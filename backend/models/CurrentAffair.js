@@ -31,7 +31,6 @@ const currentAffairSchema = new mongoose.Schema({
       'Awards & Honors', 
       'Government Schemes',
       // Legacy categories for backward compatibility
-      'Politics', 
       'Economy', 
       'Science', 
       'Defence', 
@@ -42,6 +41,17 @@ const currentAffairSchema = new mongoose.Schema({
   imageURL: {
     type: String,
     trim: true
+  },
+  source: {
+    type: String,
+    trim: true
+  },
+  meetLink: {
+    type: String,
+    trim: true
+  },
+  scheduledDate: {
+    type: Date
   },
   isActive: {
     type: Boolean,

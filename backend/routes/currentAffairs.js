@@ -165,6 +165,8 @@ router.get('/:id', async (req, res) => {
 // @access  Admin only
 router.post('/', simpleAdminAuth, async (req, res) => {
   try {
+    console.log('Creating current affair with data:', req.body);
+    
     const {
       title,
       content,
@@ -178,26 +180,50 @@ router.post('/', simpleAdminAuth, async (req, res) => {
 
     // Validation
     if (!title || !content || !category) {
+      console.log('Validation failed - missing required fields');
       return res.status(400).json({
         success: false,
-        message: 'Title, content, and category are required'
+        message: 'Title, content, and category are required',
+        data: null
       });
     }
 
+    // Validate title length
+    if (title.length < 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be at least 5 characters long',
+        data: null
+      });
+    }
+
+    // Validate content length
+    if (content.length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content must be at least 20 characters long',
+        data: null
+      });
+    }
+
+    console.log('Creating current affair for user:', req.user.id);
+
     const currentAffair = new CurrentAffair({
-      title,
-      content,
-      category,
-      importance: importance || 'medium',
-      tags: tags || [],
-      source,
-      meetLink,
-      scheduledDate,
+      title: title.trim(),
+      content: content.trim(),
+      category: category.trim(),
+      importance: importance ? importance.charAt(0).toUpperCase() + importance.slice(1).toLowerCase() : 'Medium',
+      tags: Array.isArray(tags) ? tags.filter(tag => tag.trim()) : [],
+      source: source ? source.trim() : '',
+      meetLink: meetLink ? meetLink.trim() : '',
+      scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
       createdBy: req.user.id,
-      datePosted: new Date()
+      datePosted: new Date(),
+      isActive: true
     });
 
     const savedAffair = await currentAffair.save();
+    console.log('Current affair saved successfully:', savedAffair._id);
     
     res.status(201).json({
       success: true,
@@ -206,9 +232,30 @@ router.post('/', simpleAdminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Create current affair error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error: ' + validationErrors.join(', '),
+        data: null
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'A current affair with this title already exists',
+        data: null
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: 'Server error. Please try again later.',
+      data: null
     });
   }
 });
@@ -218,6 +265,9 @@ router.post('/', simpleAdminAuth, async (req, res) => {
 // @access  Admin only
 router.put('/:id', simpleAdminAuth, async (req, res) => {
   try {
+    console.log('Updating current affair:', req.params.id);
+    console.log('Update data:', req.body);
+
     const {
       title,
       content,
@@ -235,24 +285,26 @@ router.put('/:id', simpleAdminAuth, async (req, res) => {
     if (!currentAffair) {
       return res.status(404).json({
         success: false,
-        message: 'Current affair not found'
+        message: 'Current affair not found',
+        data: null
       });
     }
 
     // Update fields
-    if (title) currentAffair.title = title;
-    if (content) currentAffair.content = content;
-    if (category) currentAffair.category = category;
-    if (importance) currentAffair.importance = importance;
-    if (tags) currentAffair.tags = tags;
-    if (source) currentAffair.source = source;
-    if (meetLink) currentAffair.meetLink = meetLink;
-    if (scheduledDate) currentAffair.scheduledDate = scheduledDate;
+    if (title) currentAffair.title = title.trim();
+    if (content) currentAffair.content = content.trim();
+    if (category) currentAffair.category = category.trim();
+    if (importance) currentAffair.importance = importance.charAt(0).toUpperCase() + importance.slice(1).toLowerCase();
+    if (tags) currentAffair.tags = Array.isArray(tags) ? tags.filter(tag => tag.trim()) : [];
+    if (source !== undefined) currentAffair.source = source ? source.trim() : '';
+    if (meetLink !== undefined) currentAffair.meetLink = meetLink ? meetLink.trim() : '';
+    if (scheduledDate !== undefined) currentAffair.scheduledDate = scheduledDate ? new Date(scheduledDate) : null;
     if (typeof isActive !== 'undefined') currentAffair.isActive = isActive;
     
     currentAffair.updatedAt = new Date();
 
     const updatedAffair = await currentAffair.save();
+    console.log('Current affair updated successfully:', updatedAffair._id);
 
     res.json({
       success: true,
@@ -261,9 +313,21 @@ router.put('/:id', simpleAdminAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Update current affair error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error: ' + validationErrors.join(', '),
+        data: null
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: 'Server error. Please try again later.',
+      data: null
     });
   }
 });
@@ -273,12 +337,15 @@ router.put('/:id', simpleAdminAuth, async (req, res) => {
 // @access  Admin only
 router.delete('/:id', simpleAdminAuth, async (req, res) => {
   try {
+    console.log('Deleting current affair:', req.params.id);
+
     const currentAffair = await CurrentAffair.findById(req.params.id);
 
     if (!currentAffair) {
       return res.status(404).json({
         success: false,
-        message: 'Current affair not found'
+        message: 'Current affair not found',
+        data: null
       });
     }
 
@@ -287,15 +354,19 @@ router.delete('/:id', simpleAdminAuth, async (req, res) => {
     currentAffair.updatedAt = new Date();
     await currentAffair.save();
 
+    console.log('Current affair deleted successfully:', req.params.id);
+
     res.json({
       success: true,
-      message: 'Current affair deleted successfully'
+      message: 'Current affair deleted successfully',
+      data: null
     });
   } catch (error) {
     console.error('Delete current affair error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: 'Server error. Please try again later.',
+      data: null
     });
   }
 });
