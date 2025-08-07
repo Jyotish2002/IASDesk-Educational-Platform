@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Menu, 
-  X, 
-  ChevronDown, 
+import {
+  Menu,
+  X,
+  ChevronDown,
   LogOut,
   ShoppingCart,
   Settings,
@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hasEnrolledCourses, setHasEnrolledCourses] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
-  
+
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,13 +48,13 @@ const Navbar: React.FC = () => {
           });
 
           const userData = await response.json();
-          
+
           if (userData.success && userData.data.user && userData.data.user.enrolledCourses) {
             // Only count courses with valid payment
-            const validEnrollments = userData.data.user.enrolledCourses.filter((enrollment: any) => 
+            const validEnrollments = userData.data.user.enrolledCourses.filter((enrollment: any) =>
               enrollment.paymentId
             );
-            
+
             setHasEnrolledCourses(validEnrollments.length > 0);
           } else {
             setHasEnrolledCourses(false);
@@ -99,7 +99,7 @@ const Navbar: React.FC = () => {
     };
 
     checkUnreadMessages();
-    
+
     // Check for unread messages every 30 seconds
     const interval = setInterval(checkUnreadMessages, 30000);
     return () => clearInterval(interval);
@@ -136,10 +136,10 @@ const Navbar: React.FC = () => {
     ]
   };
 
-  const DropdownMenu: React.FC<{ 
-    items: typeof courseCategories.courses, 
+  const DropdownMenu: React.FC<{
+    items: typeof courseCategories.courses,
     isOpen: boolean,
-    onClose: () => void 
+    onClose: () => void
   }> = ({ items, isOpen, onClose }) => {
     if (!isOpen) return null;
 
@@ -178,199 +178,203 @@ const Navbar: React.FC = () => {
                 alt="IASDesk Logo"
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">IASDesk</span>
+              <span className="text-xl font-bold text-gray-900">
+                <span className="text-red-600">IAS</span>
+                <span className="text-blue-600">Desk</span>
+              </span>
+
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center justify-between flex-1 ml-8">
             <div className="flex items-center space-x-4 xl:space-x-6" ref={dropdownRef}>
-            {/* Courses Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setActiveDropdown(activeDropdown === 'courses' ? null : 'courses')}
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
-              >
-                <span>Courses</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              <DropdownMenu
-                items={courseCategories.courses}
-                isOpen={activeDropdown === 'courses'}
-                onClose={() => setActiveDropdown(null)}
-              />
-            </div>
-
-            {/* Class 5-12 Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setActiveDropdown(activeDropdown === 'class5-12' ? null : 'class5-12')}
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
-              >
-                <span>Class 5-12</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              <DropdownMenu
-                items={courseCategories['class5-12']}
-                isOpen={activeDropdown === 'class5-12'}
-                onClose={() => setActiveDropdown(null)}
-              />
-            </div>
-
-            {/* UPSC Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setActiveDropdown(activeDropdown === 'upsc' ? null : 'upsc')}
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
-              >
-                <span>UPSC</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              <DropdownMenu
-                items={courseCategories.upsc}
-                isOpen={activeDropdown === 'upsc'}
-                onClose={() => setActiveDropdown(null)}
-              />
-            </div>
-
-            {/* Current Affairs */}
-            <Link
-              to="/current-affairs"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors whitespace-nowrap"
-            >
-              Current Affairs
-            </Link>
-
-            {/* Chat with Teachers - Show only for authenticated students */}
-            {isAuthenticated && user?.role === 'student' && (
-              <Link
-                to="/chat"
-                className="relative flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors whitespace-nowrap"
-                title="Chat with Teachers"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="hidden xl:inline">Chat</span>
-                {unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadMessages > 9 ? '9+' : unreadMessages}
-                  </span>
-                )}
-              </Link>
-            )}
-
-            {/* Live Classes - Show only for enrolled students */}
-            {isAuthenticated && hasEnrolledCourses && (
-              <Link
-                to="/live-classes"
-                className="flex items-center space-x-2 px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 rounded-lg font-medium transition-colors whitespace-nowrap"
-              >
-                <Video className="h-4 w-4" />
-                <span className="hidden xl:inline">Live</span>
-                <span className="bg-red-500 text-white text-xs px-1 py-0.5 rounded-full">●</span>
-              </Link>
-            )}
-
-            {/* Authentication Section */}
-            {isAuthenticated && user ? (
-              <div className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
-                {/* My Courses */}
-                <Link
-                  to={user?.role === 'teacher' ? "/teacher/dashboard" : "/my-courses"}
-                  className="flex items-center space-x-1 px-2 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-100 rounded-md transition-colors"
-                  title={user?.role === 'teacher' ? 'Dashboard' : 'My Courses'}
+              {/* Courses Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'courses' ? null : 'courses')}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
                 >
-                  <ShoppingCart className="h-4 w-4" />
-                  <span className="hidden xl:inline">{user?.role === 'teacher' ? 'Dashboard' : 'My Courses'}</span>
-                </Link>
+                  <span>Courses</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <DropdownMenu
+                  items={courseCategories.courses}
+                  isOpen={activeDropdown === 'courses'}
+                  onClose={() => setActiveDropdown(null)}
+                />
+              </div>
 
-                {/* User Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setActiveDropdown(activeDropdown === 'user' ? null : 'user')}
-                    className="flex items-center space-x-2 px-2 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="h-8 w-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
+              {/* Class 5-12 Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'class5-12' ? null : 'class5-12')}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                >
+                  <span>Class 5-12</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <DropdownMenu
+                  items={courseCategories['class5-12']}
+                  isOpen={activeDropdown === 'class5-12'}
+                  onClose={() => setActiveDropdown(null)}
+                />
+              </div>
 
-                  {activeDropdown === 'user' && (
-                    <div className="absolute right-0 top-full w-48 bg-white shadow-xl rounded-lg border border-gray-200 py-2 mt-1">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                      <Link
-                        to="/settings"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        onClick={() => setActiveDropdown(null)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
-                      {user.isAdmin && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                          onClick={() => setActiveDropdown(null)}
-                        >
-                          <Settings className="h-4 w-4" />
-                          <span>Admin Panel</span>
-                        </Link>
-                      )}
-                      {user.role === 'teacher' && (
-                        <Link
-                          to="/teacher/dashboard"
-                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                          onClick={() => setActiveDropdown(null)}
-                        >
-                          <Settings className="h-4 w-4" />
-                          <span>Teacher Dashboard</span>
-                        </Link>
-                      )}
-                      <hr className="my-1" />
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
+              {/* UPSC Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setActiveDropdown(activeDropdown === 'upsc' ? null : 'upsc')}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                >
+                  <span>UPSC</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <DropdownMenu
+                  items={courseCategories.upsc}
+                  isOpen={activeDropdown === 'upsc'}
+                  onClose={() => setActiveDropdown(null)}
+                />
+              </div>
+
+              {/* Current Affairs */}
+              <Link
+                to="/current-affairs"
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors whitespace-nowrap"
+              >
+                Current Affairs
+              </Link>
+
+              {/* Chat with Teachers - Show only for authenticated students */}
+              {isAuthenticated && user?.role === 'student' && (
+                <Link
+                  to="/chat"
+                  className="relative flex items-center space-x-1 text-gray-700 hover:text-primary-600 font-medium transition-colors whitespace-nowrap"
+                  title="Chat with Teachers"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden xl:inline">Chat</span>
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
                   )}
+                </Link>
+              )}
+
+              {/* Live Classes - Show only for enrolled students */}
+              {isAuthenticated && hasEnrolledCourses && (
+                <Link
+                  to="/live-classes"
+                  className="flex items-center space-x-2 px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 rounded-lg font-medium transition-colors whitespace-nowrap"
+                >
+                  <Video className="h-4 w-4" />
+                  <span className="hidden xl:inline">Live</span>
+                  <span className="bg-red-500 text-white text-xs px-1 py-0.5 rounded-full">●</span>
+                </Link>
+              )}
+
+              {/* Authentication Section */}
+              {isAuthenticated && user ? (
+                <div className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
+                  {/* My Courses */}
+                  <Link
+                    to={user?.role === 'teacher' ? "/teacher/dashboard" : "/my-courses"}
+                    className="flex items-center space-x-1 px-2 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-100 rounded-md transition-colors"
+                    title={user?.role === 'teacher' ? 'Dashboard' : 'My Courses'}
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    <span className="hidden xl:inline">{user?.role === 'teacher' ? 'Dashboard' : 'My Courses'}</span>
+                  </Link>
+
+                  {/* User Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setActiveDropdown(activeDropdown === 'user' ? null : 'user')}
+                      className="flex items-center space-x-2 px-2 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="h-8 w-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+
+                    {activeDropdown === 'user' && (
+                      <div className="absolute right-0 top-full w-48 bg-white shadow-xl rounded-lg border border-gray-200 py-2 mt-1">
+                        <div className="px-4 py-2 border-b border-gray-200">
+                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </div>
+                        <Link
+                          to="/settings"
+                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Settings</span>
+                        </Link>
+                        {user.isAdmin && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                            onClick={() => setActiveDropdown(null)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Admin Panel</span>
+                          </Link>
+                        )}
+                        {user.role === 'teacher' && (
+                          <Link
+                            to="/teacher/dashboard"
+                            className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                            onClick={() => setActiveDropdown(null)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Teacher Dashboard</span>
+                          </Link>
+                        )}
+                        <hr className="my-1" />
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
-                <Link
-                  to="/teacher-login"
-                  className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 text-sm"
-                >
-                  Teacher
-                </Link>
-                <Link
-                  to="/admin-login"
-                  className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 text-sm"
-                >
-                  Admin
-                </Link>
-                <Link
-                  to="/auth"
-                  className="px-3 py-2 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/auth"
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium text-sm"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
+                  <Link
+                    to="/teacher-login"
+                    className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 text-sm"
+                  >
+                    Teacher
+                  </Link>
+                  <Link
+                    to="/admin-login"
+                    className="px-3 py-2 text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 text-sm"
+                  >
+                    Admin
+                  </Link>
+                  <Link
+                    to="/auth"
+                    className="px-3 py-2 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/auth"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium text-sm"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center">
@@ -416,7 +420,7 @@ const Navbar: React.FC = () => {
             >
               Current Affairs
             </Link>
-            
+
             {/* Chat with Teachers for mobile - Show only for authenticated students */}
             {isAuthenticated && user?.role === 'student' && (
               <Link
@@ -433,7 +437,7 @@ const Navbar: React.FC = () => {
                 )}
               </Link>
             )}
-            
+
             {/* Live Classes for mobile - Show only for enrolled students */}
             {isAuthenticated && hasEnrolledCourses && (
               <Link
@@ -446,7 +450,7 @@ const Navbar: React.FC = () => {
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">LIVE</span>
               </Link>
             )}
-            
+
             {isAuthenticated && user ? (
               <>
                 <hr className="my-2" />
