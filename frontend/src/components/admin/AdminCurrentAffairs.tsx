@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Eye, Search, Filter, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { adminAPI, currentAffairsAPI } from '../../services/api';
 
 interface CurrentAffairAdmin {
   _id: string;
@@ -65,13 +66,6 @@ const CreateCurrentAffairModal: React.FC<CreateCurrentAffairModalProps> = ({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('adminToken');
-      
-      if (!token) {
-        toast.error('Admin authentication required');
-        return;
-      }
-
       const requestBody = {
         title: formData.title,
         content: formData.content,
@@ -83,39 +77,26 @@ const CreateCurrentAffairModal: React.FC<CreateCurrentAffairModalProps> = ({
 
       console.log('Request body:', requestBody);
 
-      const url = editingArticle
-        ? `${process.env.REACT_APP_API_URL}/admin/current-affairs/${editingArticle._id}`
-        : '${process.env.REACT_APP_API_URL}/admin/current-affairs';
-      
-      console.log('Request URL:', url);
-      
-      const method = editingArticle ? 'PUT' : 'POST';
+      let response;
+      if (editingArticle) {
+        response = await adminAPI.updateCurrentAffair(editingArticle._id, requestBody);
+      } else {
+        response = await adminAPI.createCurrentAffair(requestBody);
+      }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
+      console.log('Response data:', response.data);
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
-      const data = await response.json();
-      console.log('Response data:', data);
-
-      if (data.success) {
+      if (response.data.success) {
         toast.success(editingArticle ? 'Article updated successfully!' : 'Article created successfully!');
         onSuccess();
         onClose();
       } else {
-        throw new Error(data.message || 'Failed to save article');
+        throw new Error(response.data.message || 'Failed to save article');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving article:', error);
-      toast.error(`Failed to save article: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`Failed to save article: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -255,25 +236,18 @@ const AdminCurrentAffairs: React.FC = () => {
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        toast.error('Admin authentication required');
-        return;
-      }
-
-      const url = selectedCategory === 'all'
-        ? '${process.env.REACT_APP_API_URL}/admin/current-affairs'
-        : `${process.env.REACT_APP_API_URL}/admin/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      
+      const response = await adminAPI.getAdminCurrentAffairs(1, 50); // Get first 50 articles
+      
+      if (response.data.success && response.data.data) {
+        let articles = response.data.data.currentAffairs || response.data.data;
+        
+        // Filter by category if selected
+        if (selectedCategory !== 'all') {
+          articles = articles.filter(article => article.category === selectedCategory);
         }
-      });
-
-      const data = await response.json();
-      if (data.success && data.data) {
-        setArticles(data.data.currentAffairs || data.data);
+        
+        setArticles(articles as CurrentAffairAdmin[]);
       }
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -293,24 +267,18 @@ const AdminCurrentAffairs: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/current-affairs/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (data.success) {
+      const response = await adminAPI.deleteCurrentAffair(id);
+      
+      if (response.data.success) {
         toast.success('Article deleted successfully');
         fetchArticles();
       } else {
-        throw new Error(data.message);
+        throw new Error(response.data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting article:', error);
-      toast.error('Failed to delete article');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete article';
+      toast.error(errorMessage);
     }
   };
 

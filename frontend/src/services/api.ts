@@ -153,18 +153,18 @@ export const adminAPI = {
   getAdminCourses: (page?: number, limit?: number, isActive?: boolean): Promise<AxiosResponse<ApiListResponse<{ courses: Course[] }>>> =>
     api.get(`/admin/courses?page=${page || 1}&limit=${limit || 10}${isActive !== undefined ? `&isActive=${isActive}` : ''}`),
 
-  // Current Affairs
+  // Current Affairs - Updated to use correct endpoints
   createCurrentAffair: (data: Partial<CurrentAffair>): Promise<AxiosResponse<ApiResponse<{ currentAffair: CurrentAffair }>>> =>
-    api.post('/admin/current-affairs', data),
+    api.post('/current-affairs', data),
 
   updateCurrentAffair: (id: string, data: Partial<CurrentAffair>): Promise<AxiosResponse<ApiResponse<{ currentAffair: CurrentAffair }>>> =>
-    api.put(`/admin/current-affairs/${id}`, data),
+    api.put(`/current-affairs/${id}`, data),
 
   deleteCurrentAffair: (id: string): Promise<AxiosResponse<ApiResponse>> =>
-    api.delete(`/admin/current-affairs/${id}`),
+    api.delete(`/current-affairs/${id}`),
 
   getAdminCurrentAffairs: (page?: number, limit?: number, isActive?: boolean): Promise<AxiosResponse<ApiListResponse<{ currentAffairs: CurrentAffair[] }>>> =>
-    api.get(`/admin/current-affairs?page=${page || 1}&limit=${limit || 10}${isActive !== undefined ? `&isActive=${isActive}` : ''}`),
+    api.get(`/current-affairs?page=${page || 1}&limit=${limit || 10}${isActive !== undefined ? `&isActive=${isActive}` : ''}`),
 
   // Dashboard
   getDashboardStats: (): Promise<AxiosResponse<ApiResponse<any>>> =>

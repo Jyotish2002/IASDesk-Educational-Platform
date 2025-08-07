@@ -2,19 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, ArrowRight, BookOpen, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
-interface CurrentAffair {
-  _id: string;
-  title: string;
-  content: string;
-  summary: string;
-  imageURL?: string;
-  category: string;
-  tags: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { currentAffairsAPI } from '../services/api';
+import { CurrentAffair } from '../types';
 
 const CurrentAffairs: React.FC = () => {
   const [currentAffairs, setCurrentAffairs] = useState<CurrentAffair[]>([]);
@@ -36,15 +25,12 @@ const CurrentAffairs: React.FC = () => {
   const fetchCurrentAffairs = useCallback(async () => {
     try {
       setLoading(true);
-      const url = selectedCategory === 'all' 
-        ? '${process.env.REACT_APP_API_URL}/current-affairs'
-        : `${process.env.REACT_APP_API_URL}/current-affairs?category=${encodeURIComponent(selectedCategory)}`;
       
-      const response = await fetch(url);
-      const data = await response.json();
+      const filters = selectedCategory === 'all' ? {} : { category: selectedCategory };
+      const response = await currentAffairsAPI.getCurrentAffairs(filters);
 
-      if (data.success && data.data) {
-        setCurrentAffairs(data.data.currentAffairs || data.data);
+      if (response.data.success && response.data.data) {
+        setCurrentAffairs(response.data.data.currentAffairs || response.data.data);
       } else {
         throw new Error('Failed to fetch current affairs');
       }

@@ -63,9 +63,13 @@ export interface CurrentAffair {
   _id: string;
   title: string;
   content: string;
+  summary?: string;
   category: string;
   tags: string[];
   imageURL?: string;
+  source?: string;
+  meetLink?: string;
+  scheduledDate?: string;
   isActive: boolean;
   importance: 'High' | 'Medium' | 'Low';
   datePosted: string;
