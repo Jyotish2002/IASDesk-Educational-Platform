@@ -179,8 +179,8 @@ const Navbar: React.FC = () => {
                 className="h-8 w-auto"
               />
               <span className="text-xl font-bold text-gray-900">
-                <span className="text-red-600">IAS</span>
-                <span className="text-blue-600">Desk</span>
+                <span className="text-blue-600">IAS</span>
+                <span className="text-red-600">Desk</span>
               </span>
 
             </Link>
