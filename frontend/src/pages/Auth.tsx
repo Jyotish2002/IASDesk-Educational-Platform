@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Phone, Shield, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 import { validateMobile, validateOTP } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
@@ -264,6 +265,7 @@ const Auth: React.FC = () => {
           </a>
         </p>
       </div>
+      <FloatingCallButtonGlobal />
     </div>
   );
 };

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 import { tokenUtils } from '../utils/token';
 import toast from 'react-hot-toast';
 
@@ -643,6 +644,7 @@ const CourseDetails: React.FC = () => {
         title="Enroll in Course"
         subtitle="Please login or register to enroll in this course"
       />
+      <FloatingCallButtonGlobal />
     </div>
   );
 };

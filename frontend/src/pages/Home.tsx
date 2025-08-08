@@ -14,6 +14,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import testimonialsData from '../data/testimonials';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 
 const Home: React.FC = () => {
   // Use first 3 testimonials for the home page
@@ -693,6 +694,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Floating Call Button */}
+      <FloatingCallButtonGlobal />
     </div>
   );
 };

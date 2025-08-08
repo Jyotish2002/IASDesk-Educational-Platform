@@ -11,6 +11,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 import { tokenUtils } from '../utils/token';
 
 interface Course {
@@ -336,6 +337,7 @@ const MyCourses: React.FC = () => {
           </div>
         </div>
       </div>
+      <FloatingCallButtonGlobal />
     </div>
   );
 };

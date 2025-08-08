@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, ArrowRight, BookOpen, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 import { currentAffairsAPI } from '../services/api';
 import { CurrentAffair } from '../types';
 
@@ -205,6 +206,7 @@ const CurrentAffairs: React.FC = () => {
           </div>
         </div>
       </div>
+      <FloatingCallButtonGlobal />
     </div>
   );
 };

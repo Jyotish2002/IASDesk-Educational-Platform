@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Video, ArrowLeft, ExternalLink, Clock } from 'lucide-react';
+import FloatingCallButtonGlobal from '../components/FloatingCallButtonGlobal';
 import toast from 'react-hot-toast';
 
 interface LiveSession {
@@ -277,6 +278,7 @@ const CourseContent: React.FC = () => {
           </div>
         </div>
       </div>
+      <FloatingCallButtonGlobal />
     </div>
   );
 };
