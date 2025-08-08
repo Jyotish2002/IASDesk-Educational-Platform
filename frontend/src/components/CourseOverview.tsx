@@ -66,6 +66,16 @@ const CourseOverview: React.FC = () => {
     fetchData();
   }, []);
 
+  // Add API URL helper function
+  const getApiUrl = () => {
+    const apiUrl = process.env.REACT_APP_API_URL;
+    if (!apiUrl) {
+      console.warn('REACT_APP_API_URL not set, using default localhost:5000');
+      return 'http://localhost:5000/api';
+    }
+    return apiUrl;
+  };
+
   const createSampleData = async () => {
     setCreatingData(true);
     try {
@@ -126,7 +136,7 @@ const CourseOverview: React.FC = () => {
       }
       
       for (const courseData of sampleCourses) {
-        const response = await fetch('${process.env.REACT_APP_API_URL}/admin/courses', {
+        const response = await fetch(`${getApiUrl()}/admin/courses`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -168,7 +178,7 @@ const CourseOverview: React.FC = () => {
       }
       
       // Fetch courses first with larger limit to get all courses
-      const coursesResponse = await fetch('${process.env.REACT_APP_API_URL}/admin/courses?limit=1000', {
+      const coursesResponse = await fetch(`${getApiUrl()}/admin/courses?limit=1000`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -193,7 +203,7 @@ const CourseOverview: React.FC = () => {
       }
 
       // Fetch analytics
-      const analyticsResponse = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
+      const analyticsResponse = await fetch(`${getApiUrl()}/admin/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
