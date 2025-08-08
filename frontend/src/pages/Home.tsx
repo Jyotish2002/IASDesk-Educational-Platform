@@ -152,7 +152,7 @@ const Home: React.FC = () => {
     const fetchStats = async () => {
       try {
         // First, get the actual course count
-        const coursesResponse = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/courses', {
+        const coursesResponse = await fetch(`${process.env.REACT_APP_API_URL}/courses`, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -252,7 +252,7 @@ const Home: React.FC = () => {
 
     const fetchCoursesByCategory = async () => {
       try {
-        const response = await fetch('https://iasdesk-educational-platform-2.onrender.com/api/courses', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/courses`, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -362,7 +362,7 @@ const Home: React.FC = () => {
         // More detailed error logging
         if (error instanceof TypeError && error.message.includes('fetch')) {
           console.error('Network error - API might be down or CORS issue');
-          console.error('Trying to reach:', 'https://iasdesk-educational-platform-2.onrender.com/api/courses');
+          console.error('Trying to reach:', `${process.env.REACT_APP_API_URL}/courses`);
         }
         
         // Set fallback realistic data
