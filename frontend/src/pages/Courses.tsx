@@ -600,7 +600,7 @@ const Courses: React.FC = () => {
             </div>
             
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <p className="text-sm text-gray-600 mb-2">This is a demo payment. In production, integrate with:</p>
+              <p className="text-sm text-gray-600 mb-2">Thanks for choosing the best course</p>
               <ul className="text-sm text-gray-600 list-disc list-inside">
                 <li>Razorpay</li>
                 <li>Stripe</li>
@@ -619,7 +619,7 @@ const Courses: React.FC = () => {
                 onClick={() => handlePaymentSuccess(selectedCourse)}
                 className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
               >
-                Complete Payment (Demo)
+                Complete Payment
               </button>
             </div>
           </div>

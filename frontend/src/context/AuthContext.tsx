@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useState } from 'react';
 import { User, AuthState } from '../types';
 import { authAPI } from '../services/api';
 import { tokenUtils } from '../utils/token';
@@ -13,6 +13,7 @@ interface AuthContextType extends AuthState {
   adminLogin: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,6 +79,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Check for stored token on app load
   useEffect(() => {
@@ -143,6 +145,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
+
+    // Check if user is admin
+    const adminToken = localStorage.getItem('adminToken');
+    setIsAdmin(!!adminToken);
   }, []);
 
   const sendOTP = async (mobile: string): Promise<boolean> => {
@@ -355,6 +361,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     adminLogin,
     logout,
     updateProfile,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

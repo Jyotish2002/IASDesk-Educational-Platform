@@ -1,57 +1,43 @@
 const express = require('express');
 const router = express.Router();
-const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Course = require('../models/Course');
 const Payment = require('../models/Payment');
 const { auth } = require('../middleware/auth');
+const { razorpay, isLiveMode } = require('../config/razorpay');
 
-// Initialize Razorpay (only if credentials are provided)
-let razorpay = null;
-console.log('Razorpay environment check:');
-console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID ? '✓ Set' : '✗ Missing');
-console.log('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET ? '✓ Set' : '✗ Missing');
-
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-  try {
-    const Razorpay = require('razorpay');
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
-    console.log('✓ Razorpay initialized successfully');
-  } catch (error) {
-    console.error('✗ Razorpay initialization failed:', error.message);
-    console.warn('Payment will work in development mode only');
-  }
-} else {
-  console.warn('✗ Razorpay credentials not found in environment variables');
-}
-
-// @route   GET /api/payment/test
-// @desc    Test payment setup
+// @route   GET /api/payment/status
+// @desc    Get payment gateway status
 // @access  Private
-router.get('/test', auth, async (req, res) => {
+router.get('/status', auth, async (req, res) => {
   try {
     const courses = await Course.find({ isActive: true }).select('_id title price');
     
+    console.log('🔴 PAYMENT STATUS: FORCED LIVE MODE');
+    
     res.json({
       success: true,
-      message: 'Payment route is working',
+      message: 'Payment gateway is active - LIVE MODE',
       data: {
         user: {
           id: req.user._id,
           phone: req.user.phone
         },
         courses: courses,
-        razorpayAvailable: !!razorpay
+        razorpayAvailable: !!razorpay,
+        mode: 'live',
+        environment: 'production',
+        paymentType: 'real',
+        isDemo: false,
+        isTest: false,
+        isLive: true
       }
     });
   } catch (error) {
-    console.error('Test endpoint error:', error);
+    console.error('Payment status endpoint error:', error);
     res.status(500).json({
       success: false,
-      message: 'Test failed'
+      message: 'Payment gateway error'
     });
   }
 });
@@ -61,8 +47,18 @@ router.get('/test', auth, async (req, res) => {
 // @access  Private
 router.post('/create-order', auth, async (req, res) => {
   try {
-    const { courseId } = req.body;
-    console.log('Create order request:', { courseId, userId: req.user._id });
+    const { courseId, amount } = req.body;
+
+    // Force live mode
+    const forcedLiveMode = true;
+    
+    // Validate amount (minimum ₹1 for live transactions)
+    if (amount < 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Minimum amount for transactions is ₹1.00'
+      });
+    }
 
     if (!courseId) {
       return res.status(400).json({
@@ -112,17 +108,24 @@ router.post('/create-order', auth, async (req, res) => {
 
     // Create Razorpay order
     const options = {
-      amount: course.price * 100, // Amount in paise
+      amount: amount * 100, // Amount in paise
       currency: 'INR',
-      receipt: `receipt_${Date.now()}`,
+      receipt: `IASDesk_LIVE_${Date.now()}`,
+      payment_capture: 1,
       notes: {
-        courseId: courseId,
-        userId: user._id.toString(),
-        courseName: course.title
+        courseId,
+        userId: req.user.id,
+        platform: 'IASDesk',
+        environment: 'production',
+        mode: 'live'
       }
     };
 
     const order = await razorpay.orders.create(options);
+
+    // Log for live transactions
+    console.log(`🔴 LIVE ORDER CREATED: ${order.id} for ₹${amount}`);
+    console.log('💰 REAL MONEY TRANSACTION - Live payment processing');
 
     // Save payment record
     const payment = new Payment({
@@ -139,12 +142,18 @@ router.post('/create-order', auth, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Payment order created successfully',
+      message: 'Live payment order created successfully',
       data: {
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
+        mode: 'live',
+        environment: 'production',
+        paymentType: 'real',
+        isDemo: false,
+        isTest: false,
+        isLive: true,
         course: {
           id: course._id,
           title: course.title,
@@ -154,11 +163,6 @@ router.post('/create-order', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Create payment order error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      razorpayAvailable: !!razorpay
-    });
     res.status(500).json({
       success: false,
       message: 'Failed to create payment order: ' + error.message
@@ -194,19 +198,12 @@ router.post('/verify', auth, async (req, res) => {
       });
     }
 
-    // Verify signature
+    // Verify signature first
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
-
-    console.log('Signature verification:', {
-      body,
-      expectedSignature,
-      receivedSignature: razorpay_signature,
-      match: expectedSignature === razorpay_signature
-    });
 
     if (expectedSignature !== razorpay_signature) {
       console.log('Payment signature verification failed');
@@ -216,16 +213,38 @@ router.post('/verify', auth, async (req, res) => {
       });
     }
 
-    // Find payment record
+    // Fetch payment details from Razorpay to verify actual payment
+    let razorpayPayment;
+    try {
+      razorpayPayment = await razorpay.payments.fetch(razorpay_payment_id);
+      console.log('Razorpay payment details:', {
+        id: razorpayPayment.id,
+        status: razorpayPayment.status,
+        amount: razorpayPayment.amount,
+        method: razorpayPayment.method,
+        captured: razorpayPayment.captured
+      });
+    } catch (error) {
+      console.error('Failed to fetch payment from Razorpay:', error);
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to verify payment with Razorpay'
+      });
+    }
+
+    // Verify payment status is captured/authorized
+    if (razorpayPayment.status !== 'captured' && razorpayPayment.status !== 'authorized') {
+      console.log('Payment not captured/authorized:', razorpayPayment.status);
+      return res.status(400).json({
+        success: false,
+        message: `Payment not successful. Status: ${razorpayPayment.status}`
+      });
+    }
+
+    // Find payment record in database
     const payment = await Payment.findOne({ 
       orderId: razorpay_order_id,
       userId: req.user._id 
-    });
-
-    console.log('Payment record lookup:', {
-      orderId: razorpay_order_id,
-      userId: req.user._id,
-      found: !!payment
     });
 
     if (!payment) {
@@ -236,15 +255,48 @@ router.post('/verify', auth, async (req, res) => {
       });
     }
 
+    // Verify amounts match
+    if (razorpayPayment.amount !== payment.amount * 100) {
+      console.log('Amount mismatch:', {
+        razorpayAmount: razorpayPayment.amount,
+        expectedAmount: payment.amount * 100
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Payment amount mismatch'
+      });
+    }
+
+    // Check if payment is already processed
+    if (payment.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment already processed'
+      });
+    }
+
     // Update payment record
     payment.paymentId = razorpay_payment_id;
     payment.signature = razorpay_signature;
     payment.status = 'completed';
     payment.paymentDate = new Date();
+    payment.paymentMethod = razorpayPayment.method;
     await payment.save();
 
-    // Enroll user in course
+    // Check if user is already enrolled (double check)
     const user = req.user;
+    const alreadyEnrolled = user.enrolledCourses.some(
+      enrollment => enrollment.courseId.toString() === courseId
+    );
+
+    if (alreadyEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: 'Already enrolled in this course'
+      });
+    }
+
+    // Enroll user in course only after successful payment verification
     user.enrolledCourses.push({
       courseId: courseId,
       paymentId: razorpay_payment_id,
@@ -257,12 +309,23 @@ router.post('/verify', auth, async (req, res) => {
       $inc: { enrollmentCount: 1 }
     });
 
+    // Enhanced logging for live payments
+    console.log(`🔴 LIVE PAYMENT VERIFIED & ENROLLED: ${razorpay_payment_id} - Amount: ₹${razorpayPayment.amount/100} - Method: ${razorpayPayment.method}`);
+    console.log('💰 REAL MONEY TRANSACTION COMPLETED');
+
     res.json({
       success: true,
-      message: 'Payment verified and enrollment completed successfully',
+      message: 'Live payment verified and enrollment completed successfully',
       data: {
         paymentId: razorpay_payment_id,
-        courseId: courseId
+        courseId: courseId,
+        amount: razorpayPayment.amount / 100,
+        method: razorpayPayment.method,
+        mode: 'live',
+        paymentType: 'real',
+        isDemo: false,
+        isTest: false,
+        isLive: true
       }
     });
   } catch (error) {

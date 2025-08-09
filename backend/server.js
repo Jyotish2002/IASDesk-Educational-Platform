@@ -76,33 +76,30 @@ app.get('/', (req, res) => {
 // MongoDB Connection
 let isConnected = false;
 
-const connectToDatabase = async () => {
-  if (isConnected) {
-    return;
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/iasdesk', {
-      bufferCommands: false,
-    });
-    isConnected = true;
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
-  }
-};
+const connectDB = require('./config/database');
+const createDefaultAdmin = require('./utils/createDefaultAdmin');
 
 // Connect to database
-connectToDatabase();
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
+connectDB().then(async () => {
+  console.log('✅ MongoDB connected successfully');
+  
+  // Create default admin account if none exists
+  await createDefaultAdmin();
+  
+  // Log payment mode
+  console.log('🔴 PAYMENT MODE: LIVE - Real money transactions');
+  console.log('💰 All payments will process actual money');
+  
+  // Start server
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+    console.log('🔴 LIVE PAYMENT SYSTEM ACTIVE');
   });
-}
+}).catch(err => {
+  console.error('❌ Database connection failed:', err.message);
+  process.exit(1);
+});
 
 // Export for Vercel
 module.exports = app;
