@@ -143,16 +143,16 @@ const Footer: React.FC = () => {
                 Join millions of students in their journey to success.
               </p>
               <div className="flex space-x-4">
-                <a href="https://facebook.com/iasdesk" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
+                <a href="http://facebook.com/profile.php?id=61550458162498&mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
                   <Facebook className="h-5 w-5" />
                 </a>
-                <a href="https://twitter.com/iasdesk" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
+                {/* <a href="https://twitter.com/iasdesk" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
                   <Twitter className="h-5 w-5" />
-                </a>
-                <a href="https://instagram.com/iasdesk" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
+                </a> */}
+                <a href="http://instagram.com/iasdesk365" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
                   <Instagram className="h-5 w-5" />
                 </a>
-                <a href="https://youtube.com/iasdesk" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
+                <a href="https://www.youtube.com/@iasdesk365" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
                   <Youtube className="h-5 w-5" />
                 </a>
               </div>
@@ -202,7 +202,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-5 w-5 text-primary-400 mr-3" />
-                  <span className="text-gray-400">+91 98765 43210</span>
+                  <span className="text-gray-400">+91 8750221352</span>
                 </div>
                 <div className="flex items-start">
                   <MapPin className="h-5 w-5 text-primary-400 mr-3 mt-1" />
